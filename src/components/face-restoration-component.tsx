@@ -38,7 +38,7 @@ import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from './ui/badge';
 import { Label } from '@/components/ui/label';
-import { VideoSettings } from '@/types';
+import { VideoSettings, PredictionResponse } from '@/types';
 
 export default function VideoGenerator() {
     const {
@@ -168,7 +168,7 @@ export default function VideoGenerator() {
         try {
             const data = await videoAPI.getPredictionStatus(id);
             console.log(data);
-            const outputUrl = data.output ? JSON.parse(data.output) : null;
+            const outputUrl = data.output_url ? JSON.parse(data.output_url) : null;
             // setCancelUrl(data.cancel_url);
             switch (data.status) {
                 case 'succeeded':
@@ -226,7 +226,7 @@ export default function VideoGenerator() {
     };
 
     /* if video is successfully processed */
-    const handlePredictionSuccess = async (data: any, outputUrl: string) => {
+    const handlePredictionSuccess = async (data: PredictionResponse, outputUrl: string) => {
         try {
             if (!data || !outputUrl) {
                 throw new Error('Invalid prediction data or output URL');
@@ -242,37 +242,45 @@ export default function VideoGenerator() {
                 'enhanced'
             );
             if (!cloudinaryData?.url) {
-                throw new Error(
-                    'Failed to upload enhanced video to Cloudinary'
-                );
+                throw new Error('Failed to upload enhanced video to Cloudinary');
             }
 
-            // Extract required fields with validation
-            // const {
-            //     original_file,
-            //     completed_at,
-            //     predict_time,
-            //     model,
-            //     resolution,
-            //     status,
-            //     created_at,
-            // } = data;
+            // Extract and validate required fields from PredictionResponse
+            const {
+                tasks,
+                num_inference_steps,
+                decode_chunk_size,
+                overlap,
+                noise_aug_strength,
+                min_appearance_guidance,
+                max_appearance_guidance,
+                i2i_noise_strength,
+                seed,
+                video_url,
+                created_at,
+                completed_at,
+                predict_time,
+                status,
+            } = data;
 
-            // if (!original_file || !completed_at || !created_at) {
-            //     throw new Error('Missing required fields in prediction data');
-            // }
-
-            // Save to database
-            // await videoAPI.saveToDatabase({
-            //     original_video_url: original_file,
-            //     enhanced_video_url: cloudinaryData.url,
-            //     status: status || 'succeeded',
-            //     created_at: created_at,
-            //     ended_at: completed_at,
-            //     model: model || 'unknown',
-            //     resolution: resolution || 'unknown',
-            //     predict_time: predict_time || null,
-            // });
+            // Save to database with properly formatted MongoSave type
+            await videoAPI.saveToDatabase({
+                status: status,
+                output_url: cloudinaryData.url,
+                tasks: tasks,
+                num_inference_steps: num_inference_steps,
+                decode_chunk_size: decode_chunk_size,
+                overlap: overlap,
+                noise_aug_strength: noise_aug_strength,
+                min_appearance_guidance: min_appearance_guidance,
+                max_appearance_guidance: max_appearance_guidance,
+                i2i_noise_strength: i2i_noise_strength,
+                seed: seed.toString(),
+                video_url: video_url,
+                created_at: created_at,
+                completed_at: completed_at,
+                predict_time: predict_time.toString()
+            });
         } catch (error) {
             console.error('Error in handlePredictionSuccess:', error);
             setStatus('error');
@@ -282,7 +290,7 @@ export default function VideoGenerator() {
     };
 
     /* if video is not processed */
-    const handlePredictionFailed = async (data: any) => {
+    const handlePredictionFailed = async (data: PredictionResponse) => {
         try {
             if (!data) {
                 throw new Error('No prediction data provided');
@@ -293,31 +301,42 @@ export default function VideoGenerator() {
             setEnhancedVideoUrl(null);
             setPredictionId(null);
 
-            // Extract and validate required fields
-            // const {
-            //     original_file,
-            //     completed_at,
-            //     model,
-            //     resolution,
-            //     status,
-            //     created_at,
-            // } = data;
+            // Extract required fields from PredictionResponse
+            const {
+                tasks,
+                num_inference_steps,
+                decode_chunk_size,
+                overlap,
+                noise_aug_strength,
+                min_appearance_guidance,
+                max_appearance_guidance,
+                i2i_noise_strength,
+                seed,
+                video_url,
+                created_at,
+                completed_at,
+                predict_time,
+                status,
+            } = data;
 
-            // if (!original_file || !completed_at || !created_at) {
-            //     throw new Error('Missing required fields in prediction data');
-            // }
-
-            // Save failed prediction to database
-            // await videoAPI.saveToDatabase({
-            //     original_video_url: original_file,
-            //     enhanced_video_url: null,
-            //     status: status || 'failed',
-            //     created_at: created_at,
-            //     completed_at: completed_at,
-            //     model: model || 'unknown',
-            //     resolution: resolution || 'unknown',
-            //     predict_time: null,
-            // });
+            // Save failed prediction to database with properly formatted MongoSave type
+            await videoAPI.saveToDatabase({
+                status: status,
+                output_url: '', 
+                tasks: tasks,
+                num_inference_steps: num_inference_steps,
+                decode_chunk_size: decode_chunk_size,
+                overlap: overlap,
+                noise_aug_strength: noise_aug_strength,
+                min_appearance_guidance: min_appearance_guidance,
+                max_appearance_guidance: max_appearance_guidance,
+                i2i_noise_strength: i2i_noise_strength,
+                seed: seed.toString(),
+                video_url: video_url,
+                created_at: created_at,
+                completed_at: completed_at,
+                predict_time: predict_time.toString()
+            });
         } catch (error) {
             console.error('Error in handlePredictionFailed:', error);
             // Ensure UI shows failed state even if database save fails

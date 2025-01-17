@@ -23,7 +23,7 @@ async function storePredictionData(predictionId: string, payload: any) {
         // Updated data structure to match the input parameters from the main route
         const data = {
             status: payload.status || 'unknown',
-            output: payload.output ? JSON.stringify(payload.output) : '',
+            output_url: payload.output ? JSON.stringify(payload.output) : '',
             // Add all input parameters
             tasks: payload.input?.tasks || 'face-restoration',
             num_inference_steps: payload.input?.num_inference_steps || 30,
@@ -75,6 +75,8 @@ async function storePredictionData(predictionId: string, payload: any) {
 export async function POST(request: Request) {
     try {
         const payload = await request.json();
+
+        logger.info(`payload : ${JSON.stringify(payload)}`)
 
         logger.info(
             `Webhook received for prediction ${payload.id} with status ${payload.status}`
