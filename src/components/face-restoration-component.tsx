@@ -21,10 +21,6 @@ import {
     RefreshCcw,
     CheckCircle2,
     RotateCw,
-    Video,
-    Timer,
-    CheckCircle,
-    Clock,
 } from 'lucide-react';
 import { FileUploaderRegular } from '@uploadcare/react-uploader/next';
 import '@uploadcare/react-uploader/core.css';
@@ -36,9 +32,9 @@ import { toast } from 'sonner';
 import { Slider } from '@/components/ui/slider';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
-import { Badge } from './ui/badge';
 import { Label } from '@/components/ui/label';
 import { VideoSettings, PredictionResponse } from '@/types';
+import Statistics from './statistics';
 
 export default function VideoGenerator() {
     const {
@@ -56,6 +52,8 @@ export default function VideoGenerator() {
     const [uploadCareCdnUrl, setUploadCareCdnUrl] = useState<string | null>(
         null
     );
+
+    const [finalResponse, setFinalResponse] = useState<PredictionResponse | null>(null);
 
     const [settings, setSettings] = useState<VideoSettings>({
         seed: undefined,
@@ -235,6 +233,7 @@ export default function VideoGenerator() {
             // Set UI state first
             setEnhancedVideoUrl(outputUrl);
             setStatus('succeeded');
+            setFinalResponse(data);
 
             // Upload enhanced video to Cloudinary
             const cloudinaryData = await videoAPI.uploadToCloudinary(
@@ -300,6 +299,7 @@ export default function VideoGenerator() {
             setStatus('failed');
             setEnhancedVideoUrl(null);
             setPredictionId(null);
+            setFinalResponse(data);
 
             // Extract required fields from PredictionResponse
             const {
@@ -322,7 +322,7 @@ export default function VideoGenerator() {
             // Save failed prediction to database with properly formatted MongoSave type
             await videoAPI.saveToDatabase({
                 status: status,
-                output_url: '', 
+                output_url: '',
                 tasks: tasks,
                 num_inference_steps: num_inference_steps,
                 decode_chunk_size: decode_chunk_size,
@@ -445,10 +445,10 @@ export default function VideoGenerator() {
                                     <Wand2 className="w-10 h-10 text-muted-foreground" />
                                 </div>
                                 <h2 className="text-2xl font-semibold">
-                                    Ready to Enhance the Quality of Your Video
+                                    Ready to Restore the Quality of Your Video
                                 </h2>
                                 <p className="text-muted-foreground">
-                                    Upload a video and enhance its quality
+                                    Upload a video and restore its quality
                                 </p>
                             </div>
                         </div>
@@ -787,8 +787,8 @@ export default function VideoGenerator() {
                                             'uploading',
                                             'default',
                                         ].includes(status) && (
-                                            <Wand2 className="w-4 h-4 mr-2" />
-                                        )}
+                                                <Wand2 className="w-4 h-4 mr-2" />
+                                            )}
                                         {status === 'failed' && (
                                             <RotateCw className="w-4 h-4 mr-2" />
                                         )}
@@ -797,10 +797,10 @@ export default function VideoGenerator() {
                                         {{
                                             default: 'Restore',
                                             uploading: 'Uploading Video...',
-                                            processing: 'Enhancing Video...',
+                                            processing: 'Restoring Video...',
                                             failed: 'Retry...',
-                                            succeeded: 'Enhance Video',
-                                        }[status] || 'Enhance Video'}
+                                            succeeded: 'Restore Video',
+                                        }[status] || 'Restore Video'}
                                     </Button>
 
                                     <Button
@@ -822,84 +822,8 @@ export default function VideoGenerator() {
                     <div className="flex flex-col w-[65%] h-full">
                         {renderRightSide()}
 
-                        {(status === 'succeeded' || status === 'failed') && (
-                            <div className="p-3 h-[35%] space-y-3">
-                                <div className="flex items-center justify-between border-b pb-3">
-                                    <div className="flex items-center gap-2">
-                                        <h3 className="text-xl font-semibold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-                                            Statistics
-                                        </h3>
-                                    </div>
-                                    <Badge
-                                        variant="secondary"
-                                        className="px-3 py-1 text-sm font-medium"
-                                    >
-                                        Completed
-                                    </Badge>
-                                </div>
-
-                                <Card className="w-full">
-                                    <CardContent className="p-6">
-                                        <div className="grid grid-cols-2 gap-6">
-                                            <div className="flex items-center space-x-4">
-                                                <div className="p-2 bg-primary/10 rounded-full">
-                                                    <Clock className="w-5 h-5 text-primary" />
-                                                </div>
-                                                <div>
-                                                    <p className="text-sm text-muted-foreground">
-                                                        Created At
-                                                    </p>
-                                                    <p className="font-medium">
-                                                        January 1, 2024 12:00 PM
-                                                    </p>
-                                                </div>
-                                            </div>
-
-                                            <div className="flex items-center space-x-4">
-                                                <div className="p-2 bg-green-100 rounded-full">
-                                                    <CheckCircle className="w-5 h-5 text-green-600" />
-                                                </div>
-                                                <div>
-                                                    <p className="text-sm text-muted-foreground">
-                                                        Completed At
-                                                    </p>
-                                                    <p className="font-medium">
-                                                        January 1, 2024 12:05 PM
-                                                    </p>
-                                                </div>
-                                            </div>
-
-                                            <div className="flex items-center space-x-4">
-                                                <div className="p-2 bg-blue-100 rounded-full">
-                                                    <Timer className="w-5 h-5 text-blue-600" />
-                                                </div>
-                                                <div>
-                                                    <p className="text-sm text-muted-foreground">
-                                                        Processing Time
-                                                    </p>
-                                                    <p className="font-medium">
-                                                        5 minutes
-                                                    </p>
-                                                </div>
-                                            </div>
-
-                                            <div className="flex items-center space-x-4">
-                                                <div className="p-2 bg-purple-100 rounded-full">
-                                                    <Video className="w-5 h-5 text-purple-600" />
-                                                </div>
-                                                <div>
-                                                    <p className="text-sm text-muted-foreground">
-                                                        Video Duration
-                                                    </p>
-                                                    <p className="font-medium">
-                                                        2:30 minutes
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            </div>
+                        {(status === 'succeeded' || status === 'failed') && finalResponse && (
+                            <Statistics data={finalResponse} />
                         )}
                     </div>
                 </div>

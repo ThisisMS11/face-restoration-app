@@ -18,17 +18,24 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { Loader2 } from 'lucide-react';
+import { formatDuration } from '@/utils/utilFunctions';
 
 interface VideoProcess {
     _id: string;
-    original_video_url: string;
-    enhanced_video_url: string;
+    video_url: string;
+    output_url: string;
     status: string;
     created_at: string;
-    ended_at: string;
-    model: string;
-    resolution: string;
+    completed_at: string;
+    tasks: string;
+    num_inference_steps: string;
     predict_time: string;
+    decode_chunk_size?: string;
+    overlap?: string;
+    noise_aug_strength?: string,
+    min_appearance_guidance?: string,
+    max_appearance_guidance?: string,
+    i2i_noise_strength?: string,
 }
 
 interface VideoHistoryModalProps {
@@ -42,6 +49,7 @@ export function VideoHistoryModal({
 }: VideoHistoryModalProps) {
     const [history, setHistory] = useState<VideoProcess[]>([]);
     const [loading, setLoading] = useState(true);
+    const [selectedSettings, setSelectedSettings] = useState<VideoProcess | null>(null);
 
     useEffect(() => {
         if (open) {
@@ -54,6 +62,8 @@ export function VideoHistoryModal({
             const url = `${process.env.NEXT_PUBLIC_APP_URL}/api/v1/db`;
             const response = await fetch(url);
             const result = await response.json();
+
+            console.log({ result });
             setHistory(result.data);
         } catch (error) {
             console.error('Failed to fetch history:', error);
@@ -80,90 +90,150 @@ export function VideoHistoryModal({
         );
     };
 
-    const formatDuration = (predictTime: string) => {
-        const seconds = parseFloat(predictTime);
-        return `${seconds.toFixed(1)}s`;
-    };
+  
 
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-                <DialogHeader>
-                    <DialogTitle>Video Enhancement History</DialogTitle>
-                </DialogHeader>
-                {loading ? (
-                    <div className="flex items-center justify-center p-8">
-                        <Loader2 className="h-8 w-8 animate-spin" />
-                    </div>
-                ) : (
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Date</TableHead>
-                                <TableHead>Model</TableHead>
-                                <TableHead>Resolution</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead>Predict Time</TableHead>
-                                <TableHead>Original Video</TableHead>
-                                <TableHead>Enhanced Video</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {history &&
-                                history.map((process) => (
-                                    <TableRow key={process._id}>
-                                        <TableCell>
-                                            {format(
-                                                new Date(process.created_at),
-                                                'PPp'
-                                            )}
-                                        </TableCell>
-                                        <TableCell>{process.model}</TableCell>
-                                        <TableCell>
-                                            {process.resolution}
-                                        </TableCell>
-                                        <TableCell>
-                                            {getStatusBadge(process.status)}
-                                        </TableCell>
-                                        <TableCell>
-                                            {formatDuration(
-                                                process.predict_time
-                                            )}
-                                        </TableCell>
-                                        <TableCell>
-                                            <div className="flex space-x-2">
-                                                <a
-                                                    href={
-                                                        process.original_video_url
-                                                    }
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="text-blue-500 hover:text-blue-700"
-                                                >
-                                                    Original Video
-                                                </a>
-                                            </div>
-                                        </TableCell>
-                                        <TableCell>
-                                            <div className="flex space-x-2">
-                                                <a
-                                                    href={
-                                                        process.enhanced_video_url
-                                                    }
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="text-blue-500 hover:text-blue-700"
-                                                >
-                                                    Enhanced Video
-                                                </a>
-                                            </div>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                        </TableBody>
-                    </Table>
-                )}
-            </DialogContent>
-        </Dialog>
+        <>
+            <Dialog open={open} onOpenChange={onOpenChange}>
+                <DialogContent className="max-w-6xl max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle>Video Enhancement History</DialogTitle>
+                    </DialogHeader>
+                    {loading ? (
+                        <div className="flex items-center justify-center p-8">
+                            <Loader2 className="h-8 w-8 animate-spin" />
+                        </div>
+                    ) : (
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Date</TableHead>
+                                    <TableHead>Task</TableHead>
+                                    <TableHead>Status</TableHead>
+                                    <TableHead>Processing Time</TableHead>
+                                    <TableHead>Key Settings</TableHead>
+                                    <TableHead>Videos</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {history &&
+                                    history.map((process) => (
+                                        <TableRow key={process._id}>
+                                            <TableCell className="whitespace-nowrap">
+                                                {format(new Date(process.created_at), 'PPp')}
+                                                {process.completed_at && (
+                                                    <div className="text-xs text-gray-500">
+                                                        Completed: {format(new Date(process.completed_at), 'PPp')}
+                                                    </div>
+                                                )}
+                                            </TableCell>
+                                            <TableCell>
+                                                <div>{process.tasks}</div>
+                                            </TableCell>
+                                            <TableCell>{getStatusBadge(process.status)}</TableCell>
+                                            <TableCell>{formatDuration(process.predict_time)}</TableCell>
+                                            <TableCell className="max-w-xs">
+                                                <div className="flex items-center space-x-2 text-sm">
+                                                    <button
+                                                        onClick={() => setSelectedSettings(process)}
+                                                        className="inline-flex items-center px-2 py-1 text-xs font-medium text-blue-700 bg-blue-50 rounded-md hover:bg-blue-100 transition-colors duration-200"
+                                                    >
+                                                        <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                        </svg>
+                                                        View Details
+                                                    </button>
+                                                </div>
+                                            </TableCell>
+                                            <TableCell>
+                                                <div className="flex flex-col gap-2">
+                                                    <a
+                                                        href={process.video_url}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="text-blue-500 hover:text-blue-700"
+                                                    >
+                                                        Original
+                                                    </a>
+                                                    <a
+                                                        href={process.output_url}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="text-blue-500 hover:text-blue-700"
+                                                    >
+                                                        Enhanced
+                                                    </a>
+                                                </div>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                            </TableBody>
+                        </Table>
+                    )}
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={!!selectedSettings} onOpenChange={() => setSelectedSettings(null)}>
+                <DialogContent className="max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Process Settings</DialogTitle>
+                    </DialogHeader>
+                    {selectedSettings && (
+                        <div className="space-y-6 p-4 bg-gray-50 rounded-lg">
+                            <div className="grid grid-cols-2 gap-4">
+                                {/* Processing Parameters */}
+                                <div className="col-span-2">
+                                    <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3">Processing Parameters</h3>
+                                    <div className="bg-white p-4 rounded-md shadow-sm space-y-3">
+                                        <div className="flex justify-between items-center">
+                                            <span className="font-medium text-gray-600">Inference Steps</span>
+                                            <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded">{selectedSettings.num_inference_steps}</span>
+                                        </div>
+                                        <div className="flex justify-between items-center">
+                                            <span className="font-medium text-gray-600">Decode Chunk Size</span>
+                                            <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded">{selectedSettings.decode_chunk_size || 'N/A'}</span>
+                                        </div>
+                                        <div className="flex justify-between items-center">
+                                            <span className="font-medium text-gray-600">Overlap</span>
+                                            <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded">{selectedSettings.overlap || 'N/A'}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Strength Settings */}
+                                <div className="col-span-2">
+                                    <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3">Strength Settings</h3>
+                                    <div className="bg-white p-4 rounded-md shadow-sm space-y-3">
+                                        <div className="flex justify-between items-center">
+                                            <span className="font-medium text-gray-600">Noise Aug Strength</span>
+                                            <span className="bg-green-50 text-green-700 px-2 py-1 rounded">{selectedSettings.noise_aug_strength || 'N/A'}</span>
+                                        </div>
+                                        <div className="flex justify-between items-center">
+                                            <span className="font-medium text-gray-600">I2I Noise Strength</span>
+                                            <span className="bg-green-50 text-green-700 px-2 py-1 rounded">{selectedSettings.i2i_noise_strength || 'N/A'}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Guidance Settings */}
+                                <div className="col-span-2">
+                                    <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3">Guidance Settings</h3>
+                                    <div className="bg-white p-4 rounded-md shadow-sm space-y-3">
+                                        <div className="flex justify-between items-center">
+                                            <span className="font-medium text-gray-600">Min Appearance</span>
+                                            <span className="bg-purple-50 text-purple-700 px-2 py-1 rounded">{selectedSettings.min_appearance_guidance || 'N/A'}</span>
+                                        </div>
+                                        <div className="flex justify-between items-center">
+                                            <span className="font-medium text-gray-600">Max Appearance</span>
+                                            <span className="bg-purple-50 text-purple-700 px-2 py-1 rounded">{selectedSettings.max_appearance_guidance || 'N/A'}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </DialogContent>
+            </Dialog>
+        </>
     );
 }

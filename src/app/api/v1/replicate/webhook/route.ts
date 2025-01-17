@@ -18,7 +18,7 @@ async function storePredictionData(predictionId: string, payload: any) {
             throw new Error('Invalid payload format');
         }
 
-        logger.info(`Face Restore payload : ${JSON.stringify(payload)}`);
+        // logger.info(`Face Restore payload : ${JSON.stringify(payload)}`);
 
         // Updated data structure to match the input parameters from the main route
         const data = {
