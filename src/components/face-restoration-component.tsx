@@ -203,7 +203,7 @@ export default function VideoGenerator() {
                     setStatus('processing');
                     setTimeout(
                         () => pollPredictionStatus(id, retryCount),
-                        3000
+                        8000
                     );
             }
         } catch (error) {
