@@ -18,7 +18,7 @@ async function storePredictionData(predictionId: string, payload: any) {
             throw new Error('Invalid payload format');
         }
 
-        logger.info(`Face Restore payload : ${JSON.stringify(payload)}`)
+        logger.info(`Face Restore payload : ${JSON.stringify(payload)}`);
 
         // Updated data structure to match the input parameters from the main route
         const data = {
@@ -30,8 +30,10 @@ async function storePredictionData(predictionId: string, payload: any) {
             decode_chunk_size: payload.input?.decode_chunk_size || 16,
             overlap: payload.input?.overlap || 3,
             noise_aug_strength: payload.input?.noise_aug_strength || 0,
-            min_appearance_guidance: payload.input?.min_appearance_guidance || 2,
-            max_appearance_guidance: payload.input?.max_appearance_guidance || 2,
+            min_appearance_guidance:
+                payload.input?.min_appearance_guidance || 2,
+            max_appearance_guidance:
+                payload.input?.max_appearance_guidance || 2,
             i2i_noise_strength: payload.input?.i2i_noise_strength || 1,
             seed: payload.input?.seed || '',
             video_url: payload.input?.video || '',
@@ -42,8 +44,8 @@ async function storePredictionData(predictionId: string, payload: any) {
             urls: JSON.stringify({
                 cancel: payload.urls?.cancel || '',
                 get: payload.urls?.get || '',
-                stream: payload.urls?.stream || ''
-            })
+                stream: payload.urls?.stream || '',
+            }),
         };
 
         // Store in Redis with retry logic
@@ -83,9 +85,7 @@ export async function POST(request: Request) {
             !payload.id ||
             !['failed', 'processing', 'succeeded'].includes(payload.status)
         ) {
-            logger.error(
-                `Invalid webhook event: ${JSON.stringify(payload)}`
-            );
+            logger.error(`Invalid webhook event: ${JSON.stringify(payload)}`);
             return NextResponse.json(
                 { error: 'Invalid webhook event' },
                 { status: 400 }

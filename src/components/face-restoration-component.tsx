@@ -21,6 +21,10 @@ import {
     RefreshCcw,
     CheckCircle2,
     RotateCw,
+    Video,
+    Timer,
+    CheckCircle,
+    Clock,
 } from 'lucide-react';
 import { FileUploaderRegular } from '@uploadcare/react-uploader/next';
 import '@uploadcare/react-uploader/core.css';
@@ -29,12 +33,12 @@ import { VideoHistoryModal } from '@/components/video-history-model';
 import { videoAPI } from '@/services/api';
 import { useVideoProcessing } from '@/hooks/useVideoProcessing';
 import { toast } from 'sonner';
-import { Slider } from "@/components/ui/slider";
-import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
-import { Label } from "@/components/ui/label";
+import { Slider } from '@/components/ui/slider';
+import { Input } from '@/components/ui/input';
+import { Separator } from '@/components/ui/separator';
+import { Badge } from './ui/badge';
+import { Label } from '@/components/ui/label';
 import { VideoSettings } from '@/types';
-
 
 export default function VideoGenerator() {
     const {
@@ -53,7 +57,6 @@ export default function VideoGenerator() {
         null
     );
 
-
     const [settings, setSettings] = useState<VideoSettings>({
         seed: undefined,
         tasks: 'face-restoration',
@@ -68,16 +71,19 @@ export default function VideoGenerator() {
     });
 
     // Helper function to update individual settings
-    const updateSetting = (key: keyof VideoSettings, value: string | number) => {
-        setSettings(prev => ({
+    const updateSetting = (
+        key: keyof VideoSettings,
+        value: string | number
+    ) => {
+        setSettings((prev) => ({
             ...prev,
-            [key]: value
+            [key]: value,
         }));
     };
 
     /* Start the video processing */
     const handleProcessingVideo = async (videoUrl: string) => {
-        console.log(settings)
+        console.log(settings);
         if (!videoUrl) {
             console.error('No video URL provided');
             toast('Error', {
@@ -102,13 +108,13 @@ export default function VideoGenerator() {
                 }
                 uploadedUrl = uploadResult.url;
                 setCloudinaryOriginalUrl(uploadedUrl);
-                
+
                 // Create updated settings with new video URL
                 const updatedSettings = {
                     ...settings,
-                    video: uploadedUrl
+                    video: uploadedUrl,
                 };
-                
+
                 // Update settings state
                 setSettings(updatedSettings);
 
@@ -120,9 +126,8 @@ export default function VideoGenerator() {
                     await new Promise((resolve) => setTimeout(resolve, 10000));
 
                     // Use updated settings directly instead of relying on state
-                    const predictionId = await handleEnhancingVideo(
-                        updatedSettings,
-                    );
+                    const predictionId =
+                        await handleEnhancingVideo(updatedSettings);
                     if (!predictionId) {
                         throw new Error('No prediction ID returned');
                     }
@@ -132,7 +137,6 @@ export default function VideoGenerator() {
                     setStatus('error');
                     return;
                 }
-
             } catch (error) {
                 console.error(
                     'Error uploading original video to cloudinary:',
@@ -331,9 +335,9 @@ export default function VideoGenerator() {
         setStatus('default');
         setUploadCareCdnUrl(null);
         setCloudinaryOriginalUrl(null);
-        setSettings(prev => ({
+        setSettings((prev) => ({
             ...prev,
-            video: undefined
+            video: undefined,
         }));
     };
 
@@ -342,7 +346,7 @@ export default function VideoGenerator() {
         switch (status) {
             case 'uploading':
                 return (
-                    <div className="space-y-4  w-[65%]  flex flex-col items-center justify-center">
+                    <div className="space-y-4  h-full  flex flex-col items-center justify-center">
                         <div className="mx-auto w-20 h-20 rounded-full bg-muted flex items-center justify-center animate-pulse">
                             <Upload className="w-10 h-10 text-muted-foreground" />
                         </div>
@@ -354,12 +358,12 @@ export default function VideoGenerator() {
                 );
             case 'processing':
                 return (
-                    <div className="space-y-4  w-[65%]  flex flex-col items-center justify-center">
+                    <div className="space-y-4  h-full  flex flex-col items-center justify-center">
                         <div className="mx-auto w-20 h-20 rounded-full bg-muted flex items-center justify-center animate-spin">
                             <Wand2 className="w-10 h-10 text-muted-foreground" />
                         </div>
                         <h2 className="text-2xl font-semibold">
-                            Enhancing Video...
+                            Restoring Video...
                         </h2>
                         <Progress value={66} className="w-[65%] mx-auto" />
                         {/* <Button
@@ -373,13 +377,16 @@ export default function VideoGenerator() {
                 );
             case 'succeeded':
                 return (
-                    <div className="space-y-4  w-[65%]">
+                    <div className="h-[65%]">
                         <video
-                            className="w-full aspect-video bg-muted rounded-lg h-[100%] m-4"
+                            className="w-full aspect-video bg-muted rounded-lg h-full"
                             controls
                         >
                             <source
-                                src={enhancedVideoUrl || ''}
+                                src={
+                                    enhancedVideoUrl ||
+                                    'https://res.cloudinary.com/cloudinarymohit/video/upload/v1737108144/task_2_restore_enhanced_videos/f9n2kceffut9v8befqrz.mp4'
+                                }
                                 type="video/mp4"
                             />
                             Your browser does not support the video tag.
@@ -388,7 +395,7 @@ export default function VideoGenerator() {
                 );
             case 'failed':
                 return (
-                    <div className="space-y-4 w-[65%]  flex flex-col items-center justify-center">
+                    <div className="h-full flex items-center flex-col justify-center space-y-4">
                         <div className="mx-auto w-20 h-20 rounded-full bg-red-100 flex items-center justify-center">
                             <XCircle className="w-10 h-10 text-red-600" />
                         </div>
@@ -412,7 +419,7 @@ export default function VideoGenerator() {
                 );
             default:
                 return (
-                    <div className="space-y-4 w-[65%]  flex flex-col items-center justify-center">
+                    <div className="h-full">
                         <div className="flex flex-col items-center justify-center h-full text-center">
                             <div className="space-y-4">
                                 <div className="mx-auto w-20 h-20 rounded-full bg-muted flex items-center justify-center">
@@ -432,277 +439,457 @@ export default function VideoGenerator() {
     };
 
     return (
-        <div className="flex h-full rounded-sm  p-4 w-[80%]  items-center">
-            {/* Left Side */}
-            <div className="flex-1 p-1 border-r w-[35%]  h-full">
-                <Card className="h-full ">
-                    <CardContent className="p-6 h-full relative">
-                        <Tabs defaultValue="text" className="mb-6">
-                            <TabsList className="grid w-full grid-cols-1">
-                                <TabsTrigger
-                                    value="text"
-                                    className="flex gap-2"
-                                >
-                                    <Text className="w-4 h-4" />
-                                    Video Face Restoration
-                                </TabsTrigger>
-                            </TabsList>
-                        </Tabs>
-                        <div className="space-y-4 relative">
-                            <div>
-                                <Card className="border-dashed h-full">
-                                    <CardContent className="flex flex-col items-center justify-center py-4 text-center">
-                                        {!uploadCareCdnUrl ? (
-                                            <div>
-                                                <FileUploaderRegular
-                                                    sourceList="local, url, camera, dropbox, gdrive"
-                                                    classNameUploader="uc-light uc-red"
-                                                    pubkey={
-                                                        process.env
-                                                            .NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY ||
-                                                        ''
-                                                    }
-                                                    onFileUploadSuccess={(
-                                                        info
-                                                    ) => {
-                                                        setUploadCareCdnUrl(
-                                                            info.cdnUrl
-                                                        );
-                                                    }}
-                                                    multiple={false}
-                                                    className="h-48 flex items-center justify-center"
-                                                />
-                                            </div>
-                                        ) : (
-                                            <div className="w-full space-y-4">
-                                                <div className="relative w-full aspect-video">
-                                                    <video
-                                                        className="w-full h-full rounded-lg object-cover"
-                                                        controls
-                                                        src={uploadCareCdnUrl}
-                                                    />
-                                                </div>
-                                                <div className="flex justify-center">
-                                                    <Button
-                                                        variant="destructive"
-                                                        size="sm"
-                                                        onClick={
-                                                            handleRemoveVideo
+        <div className="flex flex-col h-full rounded-sm  p-2 w-[80%]  items-center overflow-hidden">
+            <div className="w-full h-full">
+                <Tabs defaultValue="text" className="mb-1 h-[4%] w-full">
+                    <TabsList className="grid w-full grid-cols-1">
+                        <TabsTrigger value="text" className="flex gap-2">
+                            <Text className="w-4 h-4" />
+                            Video Face Restoration
+                        </TabsTrigger>
+                    </TabsList>
+                </Tabs>
+
+                <div className="flex w-full h-[93%] mt-4 gap-2 ">
+                    {/* Left Side */}
+                    <div className="flex-1 p-1 border-r w-[35%]  h-full">
+                        <Card className="h-full">
+                            <CardContent className="p-1 h-full">
+                                {/* UploadCare Uploader  */}
+                                <div className="space-y-1 h-[44%]">
+                                    <Card className="border-dashed h-full flex items-center justify-center ">
+                                        <CardContent className="flex items-center justify-center p-2">
+                                            {!uploadCareCdnUrl ? (
+                                                <div>
+                                                    <FileUploaderRegular
+                                                        sourceList="local, url, camera, dropbox, gdrive"
+                                                        classNameUploader="uc-light uc-red"
+                                                        pubkey={
+                                                            process.env
+                                                                .NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY ||
+                                                            ''
                                                         }
-                                                        className="flex items-center gap-2 w-full "
-                                                    >
-                                                        <Trash2 className="w-4 h-4" />
-                                                        Remove Video
-                                                    </Button>
+                                                        onFileUploadSuccess={(
+                                                            info
+                                                        ) => {
+                                                            setUploadCareCdnUrl(
+                                                                info.cdnUrl
+                                                            );
+                                                        }}
+                                                        multiple={false}
+                                                        className="h-32 flex items-center justify-center"
+                                                    />
                                                 </div>
-                                            </div>
-                                        )}
-                                    </CardContent>
-                                </Card>
-                            </div>
-                        </div>
+                                            ) : (
+                                                <div className="w-full space-y-2">
+                                                    <div className="relative w-full aspect-video">
+                                                        <video
+                                                            className="w-full h-full rounded-lg object-cover"
+                                                            controls
+                                                            src={
+                                                                uploadCareCdnUrl
+                                                            }
+                                                        />
+                                                    </div>
+                                                    <div className="flex justify-center">
+                                                        <Button
+                                                            variant="destructive"
+                                                            size="sm"
+                                                            onClick={
+                                                                handleRemoveVideo
+                                                            }
+                                                            className="flex items-center gap-2 w-full "
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                            Remove Video
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </CardContent>
+                                    </Card>
+                                </div>
 
-                        <Separator className="my-4" />
-                        {/* Settings  */}
-                        <div className="space-y-4 absolute bottom-1 w-full left-0 p-5   ">
-                            <div className="space-y-2 max-h-[240px] overflow-y-auto pr-4">
-                                <h2 className="text-lg font-medium">Advanced Settings</h2>
+                                <Separator className="my-2" />
 
-                                <div className="space-y-4">
-                                    <div className="space-y-2">
-                                        <Label>Tasks</Label>
-                                        <Select
-                                            defaultValue="face-restoration"
-                                            onValueChange={(value) => updateSetting('tasks', value)}
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="face-restoration">
-                                                    Face Restoration
-                                                </SelectItem>
-                                                <SelectItem value="face-restoration-and-colorization">
-                                                    Face Restoration and Colorization
-                                                </SelectItem>
-                                                <SelectItem value="face-restoration-and-colorization-and-inpainting">
-                                                    Face Restoration, Colorization and Inpainting
-                                                </SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label>Number of Inference Steps</Label>
-                                        <Slider
-                                            value={[settings.numInferenceSteps]}
-                                            onValueChange={(value) => updateSetting('numInferenceSteps', value[0])}
-                                            min={1}
-                                            max={100}
-                                            step={1}
-                                        />
-                                        <p className="text-xs text-muted-foreground">
-                                            Current: {settings.numInferenceSteps}
-                                        </p>
-                                    </div>
+                                {/* Settings  */}
+                                <div className="space-y-4 w-full h-[45%] p-5 overflow-y-auto">
+                                    <h3 className="text-lg font-medium">
+                                        Advanced Settings
+                                    </h3>
 
-                                    <div className="space-y-2">
-                                        <Label>Decode Chunk Size</Label>
-                                        <Slider
-                                            value={[settings.decodeChunkSize]}
-                                            onValueChange={(value) => updateSetting('decodeChunkSize', value[0])}
-                                            min={1}
-                                            max={32}
-                                            step={1}
-                                        />
-                                        <p className="text-xs text-muted-foreground">
-                                            Current: {settings.decodeChunkSize}
-                                        </p>
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <Label>Overlap Frames</Label>
-                                        <Slider
-                                            value={[settings.overlap]}
-                                            onValueChange={(value) => updateSetting('overlap', value[0])}
-                                            min={0}
-                                            max={10}
-                                            step={1}
-                                        />
-                                        <p className="text-xs text-muted-foreground">
-                                            Current: {settings.overlap}
-                                        </p>
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <Label>Noise Augmentation Strength</Label>
-                                        <Slider
-                                            value={[settings.noiseAugStrength]}
-                                            onValueChange={(value) => updateSetting('noiseAugStrength', value[0])}
-                                            min={0}
-                                            max={1}
-                                            step={0.1}
-                                        />
-                                        <p className="text-xs text-muted-foreground">
-                                            Current: {settings.noiseAugStrength.toFixed(1)}
-                                        </p>
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <Label>Appearance Guidance Scale</Label>
+                                    <div className="space-y-3">
                                         <div className="space-y-2">
-                                            <div className="grid grid-cols-2 gap-4">
-                                                <div>
-                                                    <Label className="text-xs">Minimum</Label>
-                                                    <Slider
-                                                        value={[settings.minAppearanceGuidanceScale]}
-                                                        onValueChange={(value) => updateSetting('minAppearanceGuidanceScale', value[0])}
-                                                        min={0}
-                                                        max={5}
-                                                        step={0.1}
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <Label className="text-xs">Maximum</Label>
-                                                    <Slider
-                                                        value={[settings.maxAppearanceGuidanceScale]}
-                                                        onValueChange={(value) => updateSetting('maxAppearanceGuidanceScale', value[0])}
-                                                        min={0}
-                                                        max={5}
-                                                        step={0.1}
-                                                    />
-                                                </div>
-                                            </div>
+                                            <Label>Tasks</Label>
+                                            <Select
+                                                defaultValue="face-restoration"
+                                                onValueChange={(value) =>
+                                                    updateSetting(
+                                                        'tasks',
+                                                        value
+                                                    )
+                                                }
+                                            >
+                                                <SelectTrigger>
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="face-restoration">
+                                                        Face Restoration
+                                                    </SelectItem>
+                                                    <SelectItem value="face-restoration-and-colorization">
+                                                        Face Restoration and
+                                                        Colorization
+                                                    </SelectItem>
+                                                    <SelectItem value="face-restoration-and-colorization-and-inpainting">
+                                                        Face Restoration,
+                                                        Colorization and
+                                                        Inpainting
+                                                    </SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>
+                                                Number of Inference Steps
+                                            </Label>
+                                            <Slider
+                                                value={[
+                                                    settings.numInferenceSteps,
+                                                ]}
+                                                onValueChange={(value) =>
+                                                    updateSetting(
+                                                        'numInferenceSteps',
+                                                        value[0]
+                                                    )
+                                                }
+                                                min={1}
+                                                max={100}
+                                                step={1}
+                                            />
                                             <p className="text-xs text-muted-foreground">
-                                                Current: {settings.minAppearanceGuidanceScale.toFixed(1)} - {settings.maxAppearanceGuidanceScale.toFixed(1)}
+                                                Current:{' '}
+                                                {settings.numInferenceSteps}
+                                            </p>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label>Decode Chunk Size</Label>
+                                            <Slider
+                                                value={[
+                                                    settings.decodeChunkSize,
+                                                ]}
+                                                onValueChange={(value) =>
+                                                    updateSetting(
+                                                        'decodeChunkSize',
+                                                        value[0]
+                                                    )
+                                                }
+                                                min={1}
+                                                max={32}
+                                                step={1}
+                                            />
+                                            <p className="text-xs text-muted-foreground">
+                                                Current:{' '}
+                                                {settings.decodeChunkSize}
+                                            </p>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label>Overlap Frames</Label>
+                                            <Slider
+                                                value={[settings.overlap]}
+                                                onValueChange={(value) =>
+                                                    updateSetting(
+                                                        'overlap',
+                                                        value[0]
+                                                    )
+                                                }
+                                                min={0}
+                                                max={10}
+                                                step={1}
+                                            />
+                                            <p className="text-xs text-muted-foreground">
+                                                Current: {settings.overlap}
+                                            </p>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label>
+                                                Noise Augmentation Strength
+                                            </Label>
+                                            <Slider
+                                                value={[
+                                                    settings.noiseAugStrength,
+                                                ]}
+                                                onValueChange={(value) =>
+                                                    updateSetting(
+                                                        'noiseAugStrength',
+                                                        value[0]
+                                                    )
+                                                }
+                                                min={0}
+                                                max={1}
+                                                step={0.1}
+                                            />
+                                            <p className="text-xs text-muted-foreground">
+                                                Current:{' '}
+                                                {settings.noiseAugStrength.toFixed(
+                                                    1
+                                                )}
+                                            </p>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label>
+                                                Appearance Guidance Scale
+                                            </Label>
+                                            <div className="space-y-2">
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <div>
+                                                        <Label className="text-xs">
+                                                            Minimum
+                                                        </Label>
+                                                        <Slider
+                                                            value={[
+                                                                settings.minAppearanceGuidanceScale,
+                                                            ]}
+                                                            onValueChange={(
+                                                                value
+                                                            ) =>
+                                                                updateSetting(
+                                                                    'minAppearanceGuidanceScale',
+                                                                    value[0]
+                                                                )
+                                                            }
+                                                            min={0}
+                                                            max={5}
+                                                            step={0.1}
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <Label className="text-xs">
+                                                            Maximum
+                                                        </Label>
+                                                        <Slider
+                                                            value={[
+                                                                settings.maxAppearanceGuidanceScale,
+                                                            ]}
+                                                            onValueChange={(
+                                                                value
+                                                            ) =>
+                                                                updateSetting(
+                                                                    'maxAppearanceGuidanceScale',
+                                                                    value[0]
+                                                                )
+                                                            }
+                                                            min={0}
+                                                            max={5}
+                                                            step={0.1}
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <p className="text-xs text-muted-foreground">
+                                                    Current:{' '}
+                                                    {settings.minAppearanceGuidanceScale.toFixed(
+                                                        1
+                                                    )}{' '}
+                                                    -{' '}
+                                                    {settings.maxAppearanceGuidanceScale.toFixed(
+                                                        1
+                                                    )}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label>I2I Noise Strength</Label>
+                                            <Slider
+                                                value={[
+                                                    settings.i2iNoiseStrength,
+                                                ]}
+                                                onValueChange={(value) =>
+                                                    updateSetting(
+                                                        'i2iNoiseStrength',
+                                                        value[0]
+                                                    )
+                                                }
+                                                min={0}
+                                                max={2}
+                                                step={0.1}
+                                            />
+                                            <p className="text-xs text-muted-foreground">
+                                                Current:{' '}
+                                                {settings.i2iNoiseStrength.toFixed(
+                                                    1
+                                                )}
+                                            </p>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label>Seed (Optional)</Label>
+                                            <Input
+                                                type="number"
+                                                value={settings.seed}
+                                                onChange={(e) =>
+                                                    updateSetting(
+                                                        'seed',
+                                                        e.target.value
+                                                    )
+                                                }
+                                                placeholder="Random"
+                                            />
+                                            <p className="text-xs text-muted-foreground">
+                                                Leave empty for random seed
                                             </p>
                                         </div>
                                     </div>
-
-                                    <div className="space-y-2">
-                                        <Label>I2I Noise Strength</Label>
-                                        <Slider
-                                            value={[settings.i2iNoiseStrength]}
-                                            onValueChange={(value) => updateSetting('i2iNoiseStrength', value[0])}
-                                            min={0}
-                                            max={2}
-                                            step={0.1}
-                                        />
-                                        <p className="text-xs text-muted-foreground">
-                                            Current: {settings.i2iNoiseStrength.toFixed(1)}
-                                        </p>
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <Label>Seed (Optional)</Label>
-                                        <Input
-                                            type="number"
-                                            value={settings.seed}
-                                            onChange={(e) => updateSetting('seed', e.target.value)}
-                                            placeholder="Random"
-                                        />
-                                        <p className="text-xs text-muted-foreground">
-                                            Leave empty for random seed
-                                        </p>
-                                    </div>
                                 </div>
-                            </div>
 
-                            <Separator className="my-4" />
+                                <Separator className="my-2" />
 
-                            <div className="flex gap-4">
-                                <Button
-                                    className="flex-1 rounded-lg"
-                                    onClick={() =>
-                                        handleProcessingVideo(
-                                            uploadCareCdnUrl || ''
-                                        )
-                                    }
-                                    disabled={['uploading', 'processing'].includes(
-                                        status
-                                    )}
-                                >
-                                    {/* Icon based on status */}
-                                    {[
-                                        'processing',
-                                        'uploading',
-                                        'default',
-                                    ].includes(status) && (
+                                {/* Buttons  */}
+                                <div className="flex gap-3 h-[15%] px-2">
+                                    <Button
+                                        className="flex-1 rounded-lg"
+                                        onClick={() =>
+                                            handleProcessingVideo(
+                                                uploadCareCdnUrl || ''
+                                            )
+                                        }
+                                        disabled={[
+                                            'uploading',
+                                            'processing',
+                                        ].includes(status)}
+                                    >
+                                        {/* Icon based on status */}
+                                        {[
+                                            'processing',
+                                            'uploading',
+                                            'default',
+                                        ].includes(status) && (
                                             <Wand2 className="w-4 h-4 mr-2" />
                                         )}
-                                    {status === 'failed' && (
-                                        <RotateCw className="w-4 h-4 mr-2" />
-                                    )}
+                                        {status === 'failed' && (
+                                            <RotateCw className="w-4 h-4 mr-2" />
+                                        )}
 
-                                    {/* Button text based on status */}
-                                    {{
-                                        default: 'Restore',
-                                        uploading: 'Uploading Video...',
-                                        processing: 'Enhancing Video...',
-                                        failed: 'Retry...',
-                                        succeeded: 'Enhance Video',
-                                    }[status] || 'Enhance Video'}
-                                </Button>
+                                        {/* Button text based on status */}
+                                        {{
+                                            default: 'Restore',
+                                            uploading: 'Uploading Video...',
+                                            processing: 'Enhancing Video...',
+                                            failed: 'Retry...',
+                                            succeeded: 'Enhance Video',
+                                        }[status] || 'Enhance Video'}
+                                    </Button>
 
-                                <Button
-                                    className="flex-1 rounded-lg"
-                                    onClick={() => setHistoryModalOpen(true)}
-                                >
-                                    <History className="w-4 h-4 mr-2" />
-                                    View History
-                                </Button>
+                                    <Button
+                                        className="flex-1 rounded-lg"
+                                        onClick={() =>
+                                            setHistoryModalOpen(true)
+                                        }
+                                    >
+                                        <History className="w-4 h-4 mr-2" />
+                                        View History
+                                    </Button>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+
+                    {/* Right Side */}
+
+                    <div className="flex flex-col w-[65%] h-full">
+                        {renderRightSide()}
+
+                        {(status === 'succeeded' || status === 'failed') && (
+                            <div className="p-3 h-[35%] space-y-3">
+                                <div className="flex items-center justify-between border-b pb-3">
+                                    <div className="flex items-center gap-2">
+                                        <h3 className="text-xl font-semibold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+                                            Statistics
+                                        </h3>
+                                    </div>
+                                    <Badge
+                                        variant="secondary"
+                                        className="px-3 py-1 text-sm font-medium"
+                                    >
+                                        Completed
+                                    </Badge>
+                                </div>
+
+                                <Card className="w-full">
+                                    <CardContent className="p-6">
+                                        <div className="grid grid-cols-2 gap-6">
+                                            <div className="flex items-center space-x-4">
+                                                <div className="p-2 bg-primary/10 rounded-full">
+                                                    <Clock className="w-5 h-5 text-primary" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm text-muted-foreground">
+                                                        Created At
+                                                    </p>
+                                                    <p className="font-medium">
+                                                        January 1, 2024 12:00 PM
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex items-center space-x-4">
+                                                <div className="p-2 bg-green-100 rounded-full">
+                                                    <CheckCircle className="w-5 h-5 text-green-600" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm text-muted-foreground">
+                                                        Completed At
+                                                    </p>
+                                                    <p className="font-medium">
+                                                        January 1, 2024 12:05 PM
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex items-center space-x-4">
+                                                <div className="p-2 bg-blue-100 rounded-full">
+                                                    <Timer className="w-5 h-5 text-blue-600" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm text-muted-foreground">
+                                                        Processing Time
+                                                    </p>
+                                                    <p className="font-medium">
+                                                        5 minutes
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex items-center space-x-4">
+                                                <div className="p-2 bg-purple-100 rounded-full">
+                                                    <Video className="w-5 h-5 text-purple-600" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm text-muted-foreground">
+                                                        Video Duration
+                                                    </p>
+                                                    <p className="font-medium">
+                                                        2:30 minutes
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                </Card>
                             </div>
-                        </div>
-                    </CardContent>
-                </Card>
+                        )}
+                    </div>
+                </div>
+
+                <VideoHistoryModal
+                    open={historyModalOpen}
+                    onOpenChange={setHistoryModalOpen}
+                />
             </div>
-
-            {/* Right Side */}
-            {renderRightSide()}
-
-            <VideoHistoryModal
-                open={historyModalOpen}
-                onOpenChange={setHistoryModalOpen}
-            />
         </div>
     );
 }

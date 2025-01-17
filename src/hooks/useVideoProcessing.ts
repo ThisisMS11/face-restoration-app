@@ -4,16 +4,23 @@ import { useState } from 'react';
 export const useVideoProcessing = () => {
     const [predictionId, setPredictionId] = useState<string | null>(null);
     const [status, setStatus] = useState<string>('default');
-    const [enhancedVideoUrl, setEnhancedVideoUrl] = useState<string | null>(null);
-    const [cloudinaryOriginalUrl, setCloudinaryOriginalUrl] = useState<string | null>(null);
+    const [enhancedVideoUrl, setEnhancedVideoUrl] = useState<string | null>(
+        null
+    );
+    const [cloudinaryOriginalUrl, setCloudinaryOriginalUrl] = useState<
+        string | null
+    >(null);
 
     const validateSettings = (settings: VideoSettings): string | null => {
         if (!settings.video) return 'No video URL provided';
-        if (!process.env.NEXT_PUBLIC_APP_URL) return 'App URL environment variable is not configured';
+        if (!process.env.NEXT_PUBLIC_APP_URL)
+            return 'App URL environment variable is not configured';
         return null;
     };
 
-    const handleEnhancingVideo = async (settings: VideoSettings): Promise<string> => {
+    const handleEnhancingVideo = async (
+        settings: VideoSettings
+    ): Promise<string> => {
         const validationError = validateSettings(settings);
         if (validationError) {
             console.error(validationError);
@@ -47,7 +54,10 @@ export const useVideoProcessing = () => {
             setPredictionId(data.id);
             return data.id;
         } catch (error) {
-            const message = error instanceof Error ? error.message : 'Failed to enhance video';
+            const message =
+                error instanceof Error
+                    ? error.message
+                    : 'Failed to enhance video';
             console.error('Enhancement error:', message);
             setStatus('error');
             throw error;

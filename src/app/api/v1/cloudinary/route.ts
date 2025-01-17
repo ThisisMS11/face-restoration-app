@@ -70,7 +70,10 @@ export async function POST(request: NextRequest) {
         );
     }
 
-    const folder = type === 'original' ? 'task_1_restore_original_videos' : 'task_2_restore_enhanced_videos';
+    const folder =
+        type === 'original'
+            ? 'task_1_restore_original_videos'
+            : 'task_2_restore_enhanced_videos';
 
     try {
         const uploadOptions: VideoUploadOptions = {

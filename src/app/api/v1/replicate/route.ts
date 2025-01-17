@@ -53,7 +53,7 @@ export async function POST(request: Request) {
         //     overlap,
         //     decode_chunk_size,
         //     i2i_noise_strength,
-        //     noise_aug_strength, 
+        //     noise_aug_strength,
         //     num_inference_steps,
         //     max_appearance_guidance_scale,
         //     min_appearance_guidance_scale,
@@ -61,17 +61,17 @@ export async function POST(request: Request) {
         // const input = {
         //     seed,
         //     tasks,
-        //     video,  
+        //     video,
         // };
 
         const input = {
-            seed : Number(seed),
+            seed: Number(seed),
             tasks,
             video,
             overlap,
             decode_chunk_size,
             i2i_noise_strength,
-            noise_aug_strength, 
+            noise_aug_strength,
             num_inference_steps,
             max_appearance_guidance_scale,
             min_appearance_guidance_scale,
@@ -90,14 +90,14 @@ export async function POST(request: Request) {
         //     "min_appearance_guidance_scale": 2
         // }
 
-
-        logger.info(`Replicate Input : ${JSON.stringify(input)}`)
+        logger.info(`Replicate Input : ${JSON.stringify(input)}`);
 
         const prediction = await replicate.predictions.create({
-            version: '63512c77555a80ca5c84c590641036ba9f938d38b9a1841ea369780072561373',
+            version:
+                '63512c77555a80ca5c84c590641036ba9f938d38b9a1841ea369780072561373',
             input,
             webhook: `${process.env.WEBHOOK_URL}/api/v1/replicate/webhook`,
-            webhook_events_filter: ["start", "output", "completed"],
+            webhook_events_filter: ['start', 'output', 'completed'],
         });
 
         const latest = await replicate.predictions.get(prediction.id);
@@ -112,7 +112,9 @@ export async function POST(request: Request) {
             status: latest.status,
         });
     } catch (error) {
-        logger.error(`Replicate face restoration API error: ${JSON.stringify(error)}`);
+        logger.error(
+            `Replicate face restoration API error: ${JSON.stringify(error)}`
+        );
         return NextResponse.json(
             { error: 'Failed to process video' },
             { status: 500 }
