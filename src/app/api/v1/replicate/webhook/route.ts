@@ -31,9 +31,9 @@ async function storePredictionData(predictionId: string, payload: any) {
             overlap: payload.input?.overlap || 3,
             noise_aug_strength: payload.input?.noise_aug_strength || 0,
             min_appearance_guidance:
-                payload.input?.min_appearance_guidance || 2,
+                payload.input?.min_appearance_guidance_scale || 2,
             max_appearance_guidance:
-                payload.input?.max_appearance_guidance || 2,
+                payload.input?.max_appearance_guidance_scale || 2,
             i2i_noise_strength: payload.input?.i2i_noise_strength || 1,
             seed: payload.input?.seed || '',
             video_url: payload.input?.video || '',
@@ -45,6 +45,10 @@ async function storePredictionData(predictionId: string, payload: any) {
                 cancel: payload.urls?.cancel || '',
                 get: payload.urls?.get || '',
                 stream: payload.urls?.stream || '',
+            }),
+            ...(payload.input?.tasks ===
+                'face-restoration-and-colorization-and-inpainting' && {
+                mask: payload.input?.mask,
             }),
         };
 
@@ -76,7 +80,7 @@ export async function POST(request: Request) {
     try {
         const payload = await request.json();
 
-        logger.info(`payload : ${JSON.stringify(payload)}`)
+        logger.info(`payload : ${JSON.stringify(payload)}`);
 
         logger.info(
             `Webhook received for prediction ${payload.id} with status ${payload.status}`

@@ -19,29 +19,7 @@ import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { Loader2 } from 'lucide-react';
 import { formatDuration } from '@/utils/utilFunctions';
-
-interface VideoProcess {
-    _id: string;
-    video_url: string;
-    output_url: string;
-    status: string;
-    created_at: string;
-    completed_at: string;
-    tasks: string;
-    num_inference_steps: string;
-    predict_time: string;
-    decode_chunk_size?: string;
-    overlap?: string;
-    noise_aug_strength?: string,
-    min_appearance_guidance?: string,
-    max_appearance_guidance?: string,
-    i2i_noise_strength?: string,
-}
-
-interface VideoHistoryModalProps {
-    open: boolean;
-    onOpenChange: (open: boolean) => void;
-}
+import { VideoProcess, VideoHistoryModalProps } from '@/types';
 
 export function VideoHistoryModal({
     open,
@@ -49,7 +27,8 @@ export function VideoHistoryModal({
 }: VideoHistoryModalProps) {
     const [history, setHistory] = useState<VideoProcess[]>([]);
     const [loading, setLoading] = useState(true);
-    const [selectedSettings, setSelectedSettings] = useState<VideoProcess | null>(null);
+    const [selectedSettings, setSelectedSettings] =
+        useState<VideoProcess | null>(null);
 
     useEffect(() => {
         if (open) {
@@ -90,8 +69,6 @@ export function VideoHistoryModal({
         );
     };
 
-  
-
     return (
         <>
             <Dialog open={open} onOpenChange={onOpenChange}>
@@ -120,26 +97,58 @@ export function VideoHistoryModal({
                                     history.map((process) => (
                                         <TableRow key={process._id}>
                                             <TableCell className="whitespace-nowrap">
-                                                {format(new Date(process.created_at), 'PPp')}
+                                                {format(
+                                                    new Date(
+                                                        process.created_at
+                                                    ),
+                                                    'PPp'
+                                                )}
                                                 {process.completed_at && (
                                                     <div className="text-xs text-gray-500">
-                                                        Completed: {format(new Date(process.completed_at), 'PPp')}
+                                                        Completed:{' '}
+                                                        {format(
+                                                            new Date(
+                                                                process.completed_at
+                                                            ),
+                                                            'PPp'
+                                                        )}
                                                     </div>
                                                 )}
                                             </TableCell>
                                             <TableCell>
                                                 <div>{process.tasks}</div>
                                             </TableCell>
-                                            <TableCell>{getStatusBadge(process.status)}</TableCell>
-                                            <TableCell>{formatDuration(process.predict_time)}</TableCell>
+                                            <TableCell>
+                                                {getStatusBadge(process.status)}
+                                            </TableCell>
+                                            <TableCell>
+                                                {formatDuration(
+                                                    process.predict_time.toString()
+                                                )}
+                                            </TableCell>
                                             <TableCell className="max-w-xs">
                                                 <div className="flex items-center space-x-2 text-sm">
                                                     <button
-                                                        onClick={() => setSelectedSettings(process)}
+                                                        onClick={() =>
+                                                            setSelectedSettings(
+                                                                process
+                                                            )
+                                                        }
                                                         className="inline-flex items-center px-2 py-1 text-xs font-medium text-blue-700 bg-blue-50 rounded-md hover:bg-blue-100 transition-colors duration-200"
                                                     >
-                                                        <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                        <svg
+                                                            className="w-3 h-3 mr-1"
+                                                            fill="none"
+                                                            stroke="currentColor"
+                                                            viewBox="0 0 24 24"
+                                                            xmlns="http://www.w3.org/2000/svg"
+                                                        >
+                                                            <path
+                                                                strokeLinecap="round"
+                                                                strokeLinejoin="round"
+                                                                strokeWidth={2}
+                                                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                                            />
                                                         </svg>
                                                         View Details
                                                     </button>
@@ -156,7 +165,9 @@ export function VideoHistoryModal({
                                                         Original
                                                     </a>
                                                     <a
-                                                        href={process.output_url}
+                                                        href={
+                                                            process.output_url
+                                                        }
                                                         target="_blank"
                                                         rel="noopener noreferrer"
                                                         className="text-blue-500 hover:text-blue-700"
@@ -173,7 +184,10 @@ export function VideoHistoryModal({
                 </DialogContent>
             </Dialog>
 
-            <Dialog open={!!selectedSettings} onOpenChange={() => setSelectedSettings(null)}>
+            <Dialog
+                open={!!selectedSettings}
+                onOpenChange={() => setSelectedSettings(null)}
+            >
                 <DialogContent className="max-w-md">
                     <DialogHeader>
                         <DialogTitle>Process Settings</DialogTitle>
@@ -183,49 +197,116 @@ export function VideoHistoryModal({
                             <div className="grid grid-cols-2 gap-4">
                                 {/* Processing Parameters */}
                                 <div className="col-span-2">
-                                    <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3">Processing Parameters</h3>
+                                    <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3">
+                                        Processing Parameters
+                                    </h3>
                                     <div className="bg-white p-4 rounded-md shadow-sm space-y-3">
                                         <div className="flex justify-between items-center">
-                                            <span className="font-medium text-gray-600">Inference Steps</span>
-                                            <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded">{selectedSettings.num_inference_steps}</span>
+                                            <span className="font-medium text-gray-600">
+                                                Inference Steps
+                                            </span>
+                                            <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded">
+                                                {
+                                                    selectedSettings.num_inference_steps
+                                                }
+                                            </span>
                                         </div>
                                         <div className="flex justify-between items-center">
-                                            <span className="font-medium text-gray-600">Decode Chunk Size</span>
-                                            <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded">{selectedSettings.decode_chunk_size || 'N/A'}</span>
+                                            <span className="font-medium text-gray-600">
+                                                Decode Chunk Size
+                                            </span>
+                                            <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded">
+                                                {selectedSettings.decode_chunk_size ||
+                                                    'N/A'}
+                                            </span>
                                         </div>
                                         <div className="flex justify-between items-center">
-                                            <span className="font-medium text-gray-600">Overlap</span>
-                                            <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded">{selectedSettings.overlap || 'N/A'}</span>
+                                            <span className="font-medium text-gray-600">
+                                                Overlap
+                                            </span>
+                                            <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded">
+                                                {selectedSettings.overlap ||
+                                                    'N/A'}
+                                            </span>
                                         </div>
+                                        <div className="flex justify-between items-center">
+                                            <span className="font-medium text-gray-600">
+                                                Seed
+                                            </span>
+                                            <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded">
+                                                {selectedSettings.seed || 'N/A'}
+                                            </span>
+                                        </div>
+
+                                        {selectedSettings.tasks ===
+                                            'face-restoration-and-colorization-and-inpainting' && (
+                                            <div className="flex justify-between items-center">
+                                                <span className="font-medium text-gray-600">
+                                                    Mask Image
+                                                </span>
+                                                <a
+                                                    href={selectedSettings.mask}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-blue-500 hover:text-blue-700"
+                                                >
+                                                    Mask Image
+                                                </a>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 
                                 {/* Strength Settings */}
                                 <div className="col-span-2">
-                                    <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3">Strength Settings</h3>
+                                    <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3">
+                                        Strength Settings
+                                    </h3>
                                     <div className="bg-white p-4 rounded-md shadow-sm space-y-3">
                                         <div className="flex justify-between items-center">
-                                            <span className="font-medium text-gray-600">Noise Aug Strength</span>
-                                            <span className="bg-green-50 text-green-700 px-2 py-1 rounded">{selectedSettings.noise_aug_strength || 'N/A'}</span>
+                                            <span className="font-medium text-gray-600">
+                                                Noise Aug Strength
+                                            </span>
+                                            <span className="bg-green-50 text-green-700 px-2 py-1 rounded">
+                                                {selectedSettings.noise_aug_strength ||
+                                                    'N/A'}
+                                            </span>
                                         </div>
                                         <div className="flex justify-between items-center">
-                                            <span className="font-medium text-gray-600">I2I Noise Strength</span>
-                                            <span className="bg-green-50 text-green-700 px-2 py-1 rounded">{selectedSettings.i2i_noise_strength || 'N/A'}</span>
+                                            <span className="font-medium text-gray-600">
+                                                I2I Noise Strength
+                                            </span>
+                                            <span className="bg-green-50 text-green-700 px-2 py-1 rounded">
+                                                {selectedSettings.i2i_noise_strength ||
+                                                    'N/A'}
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* Guidance Settings */}
                                 <div className="col-span-2">
-                                    <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3">Guidance Settings</h3>
+                                    <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3">
+                                        Guidance Settings
+                                    </h3>
                                     <div className="bg-white p-4 rounded-md shadow-sm space-y-3">
                                         <div className="flex justify-between items-center">
-                                            <span className="font-medium text-gray-600">Min Appearance</span>
-                                            <span className="bg-purple-50 text-purple-700 px-2 py-1 rounded">{selectedSettings.min_appearance_guidance || 'N/A'}</span>
+                                            <span className="font-medium text-gray-600">
+                                                Min Appearance
+                                            </span>
+                                            <span className="bg-purple-50 text-purple-700 px-2 py-1 rounded">
+                                                {selectedSettings.min_appearance_guidance ||
+                                                    'N/A'}
+                                            </span>
                                         </div>
                                         <div className="flex justify-between items-center">
-                                            <span className="font-medium text-gray-600">Max Appearance</span>
-                                            <span className="bg-purple-50 text-purple-700 px-2 py-1 rounded">{selectedSettings.max_appearance_guidance || 'N/A'}</span>
+                                            <span className="font-medium text-gray-600">
+                                                Max Appearance
+                                            </span>
+                                            <span className="bg-purple-50 text-purple-700 px-2 py-1 rounded">
+                                                {selectedSettings.max_appearance_guidance ||
+                                                    'N/A'}
+                                            </span>
                                         </div>
                                     </div>
                                 </div>

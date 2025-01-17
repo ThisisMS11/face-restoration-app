@@ -33,6 +33,7 @@ export async function POST(request: NextRequest) {
         const {
             status,
             video_url,
+            mask,
             output_url,
             seed,
             noise_aug_strength,
@@ -54,6 +55,10 @@ export async function POST(request: NextRequest) {
             status,
             created_at,
             tasks,
+            ...(tasks ===
+                'face-restoration-and-colorization-and-inpainting' && {
+                mask,
+            }),
         };
 
         const missingFields = Object.entries(requiredFields)
@@ -124,6 +129,10 @@ export async function POST(request: NextRequest) {
         const document = {
             user_id,
             video_url,
+            ...(tasks ===
+                'face-restoration-and-colorization-and-inpainting' && {
+                mask,
+            }),
             output_url,
             status,
             created_at: new Date(created_at),

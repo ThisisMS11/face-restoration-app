@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { v2 as cloudinary } from 'cloudinary';
 import { createLoggerWithLabel } from '../../utils/logger';
+import { VideoUploadOptions } from '@/types';
 
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -9,30 +10,6 @@ cloudinary.config({
 });
 
 const logger = createLoggerWithLabel('CLOUDINARY');
-
-interface VideoUploadOptions {
-    resource_type: 'video';
-    folder: string;
-    eager?: Array<{
-        raw_transformation: string;
-        format: string;
-    }>;
-    eager_async?: boolean;
-    video_codec?: string;
-    bit_rate?: string;
-    fps?: number | string; // Allow string for 'original'
-    quality_analysis?: boolean;
-    transformation?: Array<{
-        width?: number | string; // Allow string for 'original'
-        height?: number | string; // Allow string for 'original'
-        crop?: string;
-        audio_codec?: string;
-        audio_frequency?: number;
-        audio_bitrate?: string;
-        quality?: string | number;
-        flags?: string;
-    }>;
-}
 
 const getOptimalVideoSettings = (): Partial<any> => {
     const baseSettings = {
@@ -47,11 +24,7 @@ const getOptimalVideoSettings = (): Partial<any> => {
         ...baseSettings,
         eager: [
             {
-                raw_transformation: [
-                    'q_auto:good',
-                    'vc_h264:main',
-                    'vs_3',
-                ].join('/'),
+                raw_transformation: ['q_auto:good', 'vc_h264:main'].join('/'),
                 format: 'mp4',
             },
         ],
@@ -94,7 +67,6 @@ export async function POST(request: NextRequest) {
                 quality_analysis: true,
                 transformation: [
                     {
-                        crop: 'scale',
                         quality: 'auto:best',
                     },
                 ],

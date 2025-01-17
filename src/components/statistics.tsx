@@ -1,13 +1,20 @@
-import React from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Clock, CheckCircle, Timer, Video, Download, Link2, Settings } from "lucide-react";
-import { PredictionResponse } from "@/types";
-import { Button } from "@/components/ui/button";
-import { formatDate } from "@/utils/utilFunctions";
+import React from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import {
+    Clock,
+    CheckCircle,
+    Timer,
+    Video,
+    Download,
+    Link2,
+    Settings,
+} from 'lucide-react';
+import { PredictionResponse } from '@/types';
+import { Button } from '@/components/ui/button';
+import { formatDate } from '@/utils/utilFunctions';
 
 const Statistics = ({ data }: { data: PredictionResponse | null }) => {
-
     if (!data) {
         return (
             <div className="p-3 h-[35%] space-y-3">
@@ -45,7 +52,9 @@ const Statistics = ({ data }: { data: PredictionResponse | null }) => {
                     </h3>
                 </div>
                 <Badge
-                    variant={data.status === "succeeded" ? "default" : "destructive"}
+                    variant={
+                        data.status === 'succeeded' ? 'default' : 'destructive'
+                    }
                     className="px-3 py-1 text-sm font-medium"
                 >
                     {data.status.charAt(0).toUpperCase() + data.status.slice(1)}
@@ -92,7 +101,8 @@ const Statistics = ({ data }: { data: PredictionResponse | null }) => {
                                     Processing Time
                                 </p>
                                 <p className="font-medium">
-                                    {Number(data.predict_time).toFixed(2)} seconds
+                                    {Number(data.predict_time).toFixed(2)}{' '}
+                                    seconds
                                 </p>
                             </div>
                         </div>
@@ -106,15 +116,20 @@ const Statistics = ({ data }: { data: PredictionResponse | null }) => {
                                     Task Type
                                 </p>
                                 <p className="font-medium">
-                                    {data.tasks.split('-').map(word =>
-                                        word.charAt(0).toUpperCase() + word.slice(1)
-                                    ).join(' ')}
+                                    {data.tasks
+                                        .split('-')
+                                        .map(
+                                            (word) =>
+                                                word.charAt(0).toUpperCase() +
+                                                word.slice(1)
+                                        )
+                                        .join(' ')}
                                 </p>
                             </div>
                         </div>
                     </div>
 
-                    {data.status === "succeeded" && (
+                    {data.status === 'succeeded' && (
                         <div className="mt-6 flex gap-4">
                             <Button
                                 className="flex-1"
@@ -138,7 +153,9 @@ const Statistics = ({ data }: { data: PredictionResponse | null }) => {
                             <Button
                                 variant="outline"
                                 className="flex-1"
-                                onClick={() => window.open(data.video_url, '_blank')}
+                                onClick={() =>
+                                    window.open(data.video_url, '_blank')
+                                }
                             >
                                 <Link2 className="w-4 h-4 mr-2" />
                                 View Original Video

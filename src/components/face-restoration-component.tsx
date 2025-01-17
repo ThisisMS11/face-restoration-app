@@ -23,6 +23,7 @@ import {
     RotateCw,
 } from 'lucide-react';
 import { FileUploaderRegular } from '@uploadcare/react-uploader/next';
+import { FileUploaderMinimal } from '@uploadcare/react-uploader';
 import '@uploadcare/react-uploader/core.css';
 import { Progress } from '@/components/ui/progress';
 import { VideoHistoryModal } from '@/components/video-history-model';
@@ -52,8 +53,12 @@ export default function VideoGenerator() {
     const [uploadCareCdnUrl, setUploadCareCdnUrl] = useState<string | null>(
         null
     );
+    const [uploadCareCdnMaskUrl, setUploadCareCdnMaskUrl] = useState<
+        string | null
+    >(null);
 
-    const [finalResponse, setFinalResponse] = useState<PredictionResponse | null>(null);
+    const [finalResponse, setFinalResponse] =
+        useState<PredictionResponse | null>(null);
 
     const [settings, setSettings] = useState<VideoSettings>({
         seed: undefined,
@@ -82,10 +87,24 @@ export default function VideoGenerator() {
     /* Start the video processing */
     const handleProcessingVideo = async (videoUrl: string) => {
         console.log(settings);
+        console.log(uploadCareCdnMaskUrl);
+
         if (!videoUrl) {
-            console.error('No video URL provided');
             toast('Error', {
                 description: 'Please upload a video',
+                duration: 3000,
+                icon: <XCircle className="h-4 w-4 text-red-500" />,
+            });
+            return;
+        }
+
+        if (
+            settings.tasks ===
+                'face-restoration-and-colorization-and-inpainting' &&
+            !uploadCareCdnMaskUrl
+        ) {
+            toast('Error', {
+                description: 'Please upload a mask image for inpainting',
                 duration: 3000,
                 icon: <XCircle className="h-4 w-4 text-red-500" />,
             });
@@ -111,17 +130,20 @@ export default function VideoGenerator() {
                 const updatedSettings = {
                     ...settings,
                     video: uploadedUrl,
+                    ...(settings.tasks ===
+                        'face-restoration-and-colorization-and-inpainting' && {
+                        mask: uploadCareCdnMaskUrl,
+                    }),
                 };
 
-                // Update settings state
                 setSettings(updatedSettings);
 
-                // /* enhance the video */
+                /* enhance the video */
                 try {
                     setStatus('processing');
 
                     /* Adding some delay time to give cloudinary time to upload the video */
-                    await new Promise((resolve) => setTimeout(resolve, 10000));
+                    await new Promise((resolve) => setTimeout(resolve, 8000));
 
                     // Use updated settings directly instead of relying on state
                     const predictionId =
@@ -132,7 +154,11 @@ export default function VideoGenerator() {
                     pollPredictionStatus(predictionId);
                 } catch (error) {
                     console.error('Error enhancing video:', error);
-                    setStatus('error');
+                    toast('Error', {
+                        description: 'Something Went Wrong ! Please Try Again',
+                        duration: 3000,
+                        icon: <XCircle className="h-4 w-4 text-red-500" />,
+                    });
                     return;
                 }
             } catch (error) {
@@ -140,7 +166,11 @@ export default function VideoGenerator() {
                     'Error uploading original video to cloudinary:',
                     error
                 );
-                setStatus('error');
+                toast('Error', {
+                    description: 'Cloudinary Upload Error ! Please Try Again',
+                    duration: 3000,
+                    icon: <XCircle className="h-4 w-4 text-red-500" />,
+                });
                 return;
             }
         } else {
@@ -155,7 +185,11 @@ export default function VideoGenerator() {
                 pollPredictionStatus(predictionId);
             } catch (error) {
                 console.error('Error enhancing video:', error);
-                setStatus('error');
+                toast('Error', {
+                    description: 'Something Went Wrong ! Please Try Again',
+                    duration: 3000,
+                    icon: <XCircle className="h-4 w-4 text-red-500" />,
+                });
                 return;
             }
         }
@@ -166,7 +200,9 @@ export default function VideoGenerator() {
         try {
             const data = await videoAPI.getPredictionStatus(id);
             console.log(data);
-            const outputUrl = data.output_url ? JSON.parse(data.output_url) : null;
+            const outputUrl = data.output_url
+                ? JSON.parse(data.output_url)
+                : null;
             // setCancelUrl(data.cancel_url);
             switch (data.status) {
                 case 'succeeded':
@@ -217,14 +253,17 @@ export default function VideoGenerator() {
                     10000
                 );
             } else {
-                console.log('Failed after 5 retry attempts'); // Fixed incorrect retry count in message
+                console.log('Failed after 5 retry attempts');
                 setStatus('error');
             }
         }
     };
 
     /* if video is successfully processed */
-    const handlePredictionSuccess = async (data: PredictionResponse, outputUrl: string) => {
+    const handlePredictionSuccess = async (
+        data: PredictionResponse,
+        outputUrl: string
+    ) => {
         try {
             if (!data || !outputUrl) {
                 throw new Error('Invalid prediction data or output URL');
@@ -241,12 +280,15 @@ export default function VideoGenerator() {
                 'enhanced'
             );
             if (!cloudinaryData?.url) {
-                throw new Error('Failed to upload enhanced video to Cloudinary');
+                throw new Error(
+                    'Failed to upload enhanced video to Cloudinary'
+                );
             }
 
             // Extract and validate required fields from PredictionResponse
             const {
                 tasks,
+                mask,
                 num_inference_steps,
                 decode_chunk_size,
                 overlap,
@@ -278,7 +320,11 @@ export default function VideoGenerator() {
                 video_url: video_url,
                 created_at: created_at,
                 completed_at: completed_at,
-                predict_time: predict_time.toString()
+                predict_time: predict_time.toString(),
+                ...(tasks ===
+                    'face-restoration-and-colorization-and-inpainting' && {
+                    mask,
+                }),
             });
         } catch (error) {
             console.error('Error in handlePredictionSuccess:', error);
@@ -317,6 +363,7 @@ export default function VideoGenerator() {
                 completed_at,
                 predict_time,
                 status,
+                mask,
             } = data;
 
             // Save failed prediction to database with properly formatted MongoSave type
@@ -335,7 +382,11 @@ export default function VideoGenerator() {
                 video_url: video_url,
                 created_at: created_at,
                 completed_at: completed_at,
-                predict_time: predict_time.toString()
+                predict_time: predict_time.toString(),
+                ...(tasks ===
+                    'face-restoration-and-colorization-and-inpainting' && {
+                    mask,
+                }),
             });
         } catch (error) {
             console.error('Error in handlePredictionFailed:', error);
@@ -385,13 +436,6 @@ export default function VideoGenerator() {
                             Restoring Video...
                         </h2>
                         <Progress value={66} className="w-[65%] mx-auto" />
-                        {/* <Button
-                            variant="outline"
-                            onClick={handleCancelProcessing}
-                        >
-                            <X className="w-4 h-4 mr-2" />
-                            Cancel Processing
-                        </Button> */}
                     </div>
                 );
             case 'succeeded':
@@ -497,6 +541,7 @@ export default function VideoGenerator() {
                                                         }}
                                                         multiple={false}
                                                         className="h-32 flex items-center justify-center"
+                                                        accept="video/*"
                                                     />
                                                 </div>
                                             ) : (
@@ -762,6 +807,30 @@ export default function VideoGenerator() {
                                                 Leave empty for random seed
                                             </p>
                                         </div>
+
+                                        {settings.tasks ===
+                                            'face-restoration-and-colorization-and-inpainting' && (
+                                            <div className="space-y-2">
+                                                <Label>Mask</Label>
+                                                <FileUploaderMinimal
+                                                    classNameUploader="uc-light uc-red"
+                                                    pubkey={
+                                                        process.env
+                                                            .NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY ||
+                                                        ''
+                                                    }
+                                                    onFileUploadSuccess={(
+                                                        info
+                                                    ) => {
+                                                        setUploadCareCdnMaskUrl(
+                                                            info.cdnUrl
+                                                        );
+                                                    }}
+                                                    multiple={false}
+                                                    accept="image/*"
+                                                />
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 
@@ -787,8 +856,8 @@ export default function VideoGenerator() {
                                             'uploading',
                                             'default',
                                         ].includes(status) && (
-                                                <Wand2 className="w-4 h-4 mr-2" />
-                                            )}
+                                            <Wand2 className="w-4 h-4 mr-2" />
+                                        )}
                                         {status === 'failed' && (
                                             <RotateCw className="w-4 h-4 mr-2" />
                                         )}
@@ -822,9 +891,10 @@ export default function VideoGenerator() {
                     <div className="flex flex-col w-[65%] h-full">
                         {renderRightSide()}
 
-                        {(status === 'succeeded' || status === 'failed') && finalResponse && (
-                            <Statistics data={finalResponse} />
-                        )}
+                        {(status === 'succeeded' || status === 'failed') &&
+                            finalResponse && (
+                                <Statistics data={finalResponse} />
+                            )}
                     </div>
                 </div>
 

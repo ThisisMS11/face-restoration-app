@@ -33,6 +33,18 @@ export async function POST(request: Request) {
             );
         }
 
+        if (
+            settings.tasks ===
+                'face-restoration-and-colorization-and-inpainting' &&
+            !settings.mask
+        ) {
+            logger.warn('Mask URL is required');
+            return NextResponse.json(
+                { error: 'Mask URL is required' },
+                { status: 400 }
+            );
+        }
+
         const {
             seed: seed = -1,
             tasks = 'face-restoration',
@@ -44,6 +56,7 @@ export async function POST(request: Request) {
             numInferenceSteps: num_inference_steps = 30,
             maxAppearanceGuidanceScale: max_appearance_guidance_scale = 2,
             minAppearanceGuidanceScale: min_appearance_guidance_scale = 2,
+            mask: mask = undefined,
         } = settings;
 
         const input = {
@@ -57,6 +70,10 @@ export async function POST(request: Request) {
             num_inference_steps,
             max_appearance_guidance_scale,
             min_appearance_guidance_scale,
+            ...(tasks ===
+                'face-restoration-and-colorization-and-inpainting' && {
+                mask,
+            }),
         };
 
         // const input = {
