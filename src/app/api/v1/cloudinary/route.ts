@@ -72,8 +72,10 @@ export async function POST(request: NextRequest) {
 
     const folder =
         type === 'original'
-            ? 'task_1_restore_original_videos'
-            : 'task_2_restore_enhanced_videos';
+            ? process.env.CLOUDINARY_ORIGINAL_FOLDER ||
+              'task_2_restore_original_videos'
+            : process.env.CLOUDINARY_ENHANCED_FOLDER ||
+              'task_2_restore_enhanced_videos';
 
     try {
         const uploadOptions: VideoUploadOptions = {

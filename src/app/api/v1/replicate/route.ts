@@ -46,24 +46,6 @@ export async function POST(request: Request) {
             minAppearanceGuidanceScale: min_appearance_guidance_scale = 2,
         } = settings;
 
-        // const input = {
-        //     seed,
-        //     tasks,
-        //     video,
-        //     overlap,
-        //     decode_chunk_size,
-        //     i2i_noise_strength,
-        //     noise_aug_strength,
-        //     num_inference_steps,
-        //     max_appearance_guidance_scale,
-        //     min_appearance_guidance_scale,
-        // };
-        // const input = {
-        //     seed,
-        //     tasks,
-        //     video,
-        // };
-
         const input = {
             seed: Number(seed),
             tasks,

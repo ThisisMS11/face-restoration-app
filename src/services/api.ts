@@ -1,3 +1,4 @@
+import { PredictionResponse, MongoSave } from '../types';
 export const videoAPI = {
     uploadToCloudinary: async (videoUrl: string, type: string) => {
         try {
@@ -31,7 +32,7 @@ export const videoAPI = {
         }
     },
 
-    saveToDatabase: async (inputData: any) => {
+    saveToDatabase: async (inputData: MongoSave) => {
         try {
             if (!process.env.NEXT_PUBLIC_APP_URL) {
                 throw new Error(
@@ -76,7 +77,8 @@ export const videoAPI = {
             if (!data) {
                 throw new Error('No data received from prediction endpoint');
             }
-            return data;
+
+            return data as PredictionResponse;
         } catch (error) {
             console.error('Polling error:', error);
             throw new Error('Failed to get prediction status');

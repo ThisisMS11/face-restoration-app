@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createLoggerWithLabel } from '../../utils/logger';
 import { currentUser } from '@clerk/nextjs/server';
 import clientPromise from '@/app/api/utils/mongoClient';
+import { MongoSave } from '@/types';
 
 const logger = createLoggerWithLabel('DB');
 
@@ -18,7 +19,7 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        let body;
+        let body: MongoSave;
         try {
             body = await request.json();
         } catch (e) {
@@ -30,23 +31,29 @@ export async function POST(request: NextRequest) {
         }
 
         const {
-            original_video_url,
-            enhanced_video_url,
             status,
+            video_url,
+            output_url,
+            seed,
+            noise_aug_strength,
+            i2i_noise_strength,
+            max_appearance_guidance,
+            min_appearance_guidance,
+            tasks,
+            num_inference_steps,
+            decode_chunk_size,
+            overlap,
             created_at,
-            ended_at,
-            model,
-            resolution,
+            completed_at,
             predict_time,
-        } = body;
+        }: MongoSave = body;
 
         // Validate required fields
         const requiredFields = {
-            original_video_url,
+            video_url,
             status,
             created_at,
-            model,
-            resolution,
+            tasks,
         };
 
         const missingFields = Object.entries(requiredFields)
@@ -65,25 +72,10 @@ export async function POST(request: NextRequest) {
         }
 
         // Validate field types and formats
-        if (
-            typeof original_video_url !== 'string' ||
-            !original_video_url.startsWith('http')
-        ) {
-            logger.warn('Invalid original_video_url format');
+        if (typeof video_url !== 'string' || !video_url.startsWith('http')) {
+            logger.warn('Invalid video_url format');
             return NextResponse.json(
-                { error: 'Invalid original_video_url format' },
-                { status: 400 }
-            );
-        }
-
-        if (
-            enhanced_video_url &&
-            (typeof enhanced_video_url !== 'string' ||
-                !enhanced_video_url.startsWith('http'))
-        ) {
-            logger.warn('Invalid enhanced_video_url format');
-            return NextResponse.json(
-                { error: 'Invalid enhanced_video_url format' },
+                { error: 'Invalid video_url format' },
                 { status: 400 }
             );
         }
@@ -107,7 +99,7 @@ export async function POST(request: NextRequest) {
         }
 
         const user_id = user.id;
-        logger.info(`Processing request for user: ${user_id}`);
+        logger.info(`Processing DB save request for user: ${user_id}`);
 
         let client;
         try {
@@ -120,18 +112,31 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const db = client.db('Replicate_Videos_Upscaler');
-        const collection = db.collection('replicate_processed_videos');
+        // Ensure environment variables are defined
+        if (!process.env.DB_NAME || !process.env.COLLECTION_NAME) {
+            logger.error('Database configuration missing');
+            throw new Error('Database or collection name not configured');
+        }
+
+        const db = client.db(process.env.DB_NAME);
+        const collection = db.collection(process.env.COLLECTION_NAME);
 
         const document = {
             user_id,
-            original_video_url,
-            enhanced_video_url,
+            video_url,
+            output_url,
             status,
             created_at: new Date(created_at),
-            ended_at: ended_at ? new Date(ended_at) : null,
-            model,
-            resolution,
+            completed_at: completed_at ? new Date(completed_at) : null,
+            tasks,
+            num_inference_steps,
+            decode_chunk_size,
+            overlap,
+            noise_aug_strength,
+            min_appearance_guidance,
+            max_appearance_guidance,
+            i2i_noise_strength,
+            seed,
             predict_time,
             updated_at: new Date(),
         };
@@ -169,97 +174,70 @@ export async function POST(request: NextRequest) {
 /* to get the information of all the video processes of a user */
 export async function GET() {
     try {
-        // Authenticate user
+        logger.info('Starting to process video information retrieval request');
+
         const user = await currentUser();
         if (!user) {
-            logger.warn('User not found');
+            logger.warn('User not authenticated');
             return NextResponse.json(
-                { error: 'User not found' },
+                { error: 'Unauthorized' },
                 { status: 401 }
             );
         }
+
         const user_id = user.id;
-        if (!user_id) {
-            logger.error('User ID not found');
-            return NextResponse.json(
-                { error: 'User ID not found' },
-                { status: 400 }
-            );
-        }
-        logger.info(`Processing request for user: ${user_id}`);
+        logger.info(`Processing DB retrieval request for user: ${user_id}`);
 
-        // Connect to MongoDB
-        const client = await clientPromise;
-        if (!client) {
-            logger.error('Failed to connect to MongoDB client');
-            return NextResponse.json(
-                { error: 'Database connection failed' },
-                { status: 500 }
-            );
-        }
-
-        const db = client.db('Replicate_Videos_Upscaler');
-        if (!db) {
-            logger.error('Failed to connect to database');
-            return NextResponse.json(
-                { error: 'Database connection failed' },
-                { status: 500 }
-            );
-        }
-        logger.info(`Connected to MongoDB: ${db.databaseName}`);
-
-        // Query documents with error handling
-        const collection = db.collection('replicate_processed_videos');
-        if (!collection) {
-            logger.error('Failed to access collection');
-            return NextResponse.json(
-                { error: 'Database collection not found' },
-                { status: 500 }
-            );
-        }
-
+        let client;
         try {
-            const documents = await collection
-                .find({ user_id })
-                .sort({ created_at: -1 }) // Sort by newest first
-                .limit(100) // Limit results to prevent overwhelming response
-                .toArray();
-
-            if (!documents || documents.length === 0) {
-                logger.info(`No documents found for user: ${user_id}`);
-                return NextResponse.json({
-                    message: 'No video processes found',
-                    data: [],
-                });
-            }
-
-            // Validate document structure
-            const validatedDocuments = documents.map((doc) => ({
-                ...doc,
-                created_at: doc.created_at || new Date(),
-                ended_at: doc.ended_at || null,
-                status: doc.status || 'unknown',
-                updated_at: doc.updated_at || new Date(),
-            }));
-
-            logger.info(
-                `Retrieved ${validatedDocuments.length} documents for user: ${user_id}`
-            );
-            return NextResponse.json({
-                message: 'Successfully retrieved video processes',
-                data: validatedDocuments,
-            });
-        } catch (queryError) {
-            logger.error(`Error querying documents: ${queryError}`);
+            client = await clientPromise;
+        } catch (error) {
+            logger.error(`MongoDB connection error: ${error}`);
             return NextResponse.json(
-                { error: 'Failed to query video information' },
-                { status: 500 }
+                { error: 'Database connection failed' },
+                { status: 503 }
             );
         }
+
+        // Ensure environment variables are defined
+        if (!process.env.DB_NAME || !process.env.COLLECTION_NAME) {
+            logger.error('Database configuration missing');
+            throw new Error('Database or collection name not configured');
+        }
+
+        const db = client.db(process.env.DB_NAME);
+        const collection = db.collection(process.env.COLLECTION_NAME);
+
+        const documents = await collection
+            .find({ user_id })
+            .sort({ created_at: -1 })
+            .limit(100)
+            .toArray();
+
+        if (!documents || documents.length === 0) {
+            logger.info(`No documents found for user: ${user_id}`);
+            return NextResponse.json({
+                success: true,
+                data: [],
+                message: 'No video processes found',
+            });
+        }
+
+        logger.info(
+            `Retrieved ${documents.length} documents for user: ${user_id}`
+        );
+        return NextResponse.json({
+            success: true,
+            data: documents,
+            message: 'Video processes retrieved successfully',
+        });
     } catch (error) {
         logger.error(`Error retrieving video processes: ${error}`);
         return NextResponse.json(
-            { error: 'Failed to retrieve video information' },
+            {
+                error: 'Internal server error',
+                message: 'Failed to retrieve video information',
+            },
             { status: 500 }
         );
     }
