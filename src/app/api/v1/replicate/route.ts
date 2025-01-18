@@ -77,21 +77,6 @@ export async function POST(request: Request) {
             }),
         };
 
-        // const input = {
-        //     "seed": -1,
-        //     "tasks": "face-restoration-and-colorization",
-        //     "video": "https://replicate.delivery/pbxt/MIbOfHGBUvbjrd6qxFBb1ujR4FsyJfspsrN6EFbZfOM6CtZp/lq3.mp4",
-        //     "overlap": 3,
-        //     "decode_chunk_size": 16,
-        //     "i2i_noise_strength": 1,
-        //     "noise_aug_strength": 0,
-        //     "num_inference_steps": 30,
-        //     "max_appearance_guidance_scale": 2,
-        //     "min_appearance_guidance_scale": 2
-        // }
-
-        logger.info(`Replicate Input : ${JSON.stringify(input)}`);
-
         const prediction = await replicate.predictions.create({
             version:
                 '63512c77555a80ca5c84c590641036ba9f938d38b9a1841ea369780072561373',

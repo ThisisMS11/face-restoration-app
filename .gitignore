@@ -43,6 +43,7 @@ next-env.d.ts
 logs
 
 temp.txt
+*.txt
 refactor-version-1.txt
 
 archive/

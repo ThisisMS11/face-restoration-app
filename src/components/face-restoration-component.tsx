@@ -102,8 +102,6 @@ export default function VideoGenerator() {
             /* upload the video to cloudinary and start the prediction */
             const predictionId = await handleProcessingVideo(args);
 
-            console.log(predictionId);
-
             if (predictionId) {
                 setPredictionId(predictionId);
                 handlePredictionResults(predictionId);
