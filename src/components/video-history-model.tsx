@@ -20,6 +20,7 @@ import { format } from 'date-fns';
 import { Loader2 } from 'lucide-react';
 import { formatDuration } from '@/utils/utilFunctions';
 import { VideoProcess, VideoHistoryModalProps } from '@/types';
+import { TASKS_MAP } from '@/constants';
 
 export function VideoHistoryModal({
     open,
@@ -239,7 +240,7 @@ export function VideoHistoryModal({
                                         </div>
 
                                         {selectedSettings.tasks ===
-                                            'face-restoration-and-colorization-and-inpainting' && (
+                                            TASKS_MAP.faceRestorationAndColorizationAndInpainting && (
                                             <div className="flex justify-between items-center">
                                                 <span className="font-medium text-gray-600">
                                                     Mask Image

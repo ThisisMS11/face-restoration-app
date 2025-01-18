@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { redisClient, CheckRedisConnection } from '@/app/api/utils/redisClient';
 import { createLoggerWithLabel } from '@/app/api/utils/logger';
+import { TASKS_MAP } from '@/constants';
 
 const logger = createLoggerWithLabel('WEBHOOK_REPLICATE');
 
@@ -47,7 +48,7 @@ async function storePredictionData(predictionId: string, payload: any) {
                 stream: payload.urls?.stream || '',
             }),
             ...(payload.input?.tasks ===
-                'face-restoration-and-colorization-and-inpainting' && {
+                TASKS_MAP.faceRestorationAndColorizationAndInpainting && {
                 mask: payload.input?.mask,
             }),
         };

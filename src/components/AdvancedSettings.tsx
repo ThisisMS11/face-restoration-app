@@ -2,7 +2,6 @@ import { VideoSettings } from '@/types';
 import { FileUploaderMinimal } from '@uploadcare/react-uploader';
 import '@uploadcare/react-uploader/core.css';
 import {
-    Button,
     Select,
     SelectTrigger,
     SelectValue,
@@ -12,19 +11,17 @@ import {
     Label,
     Input,
 } from '@/imports/Shadcn_imports';
-import { Trash2 } from 'lucide-react';
+import { TASKS_MAP, VIDEO_SETTINGS_MAP } from '@/constants';
 
 interface AdvancedSettingsProps {
     settings: VideoSettings;
     onUpdateSetting: (key: keyof VideoSettings, value: any) => void;
-    uploadCareCdnMaskUrl: string | null;
     onMaskUpload: (url: string) => void;
 }
 
 export default function AdvancedSettings({
     settings,
     onUpdateSetting,
-    uploadCareCdnMaskUrl,
     onMaskUpload,
 }: AdvancedSettingsProps) {
     return (
@@ -35,22 +32,22 @@ export default function AdvancedSettings({
                 <div className="space-y-2">
                     <Label>Tasks</Label>
                     <Select
-                        defaultValue="face-restoration"
+                        defaultValue={TASKS_MAP.faceRestoration}
                         onValueChange={(value: any) =>
-                            onUpdateSetting('tasks', value)
+                            onUpdateSetting(VIDEO_SETTINGS_MAP.tasks, value)
                         }
                     >
                         <SelectTrigger>
                             <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="face-restoration">
+                            <SelectItem value={TASKS_MAP.faceRestoration}>
                                 Face Restoration
                             </SelectItem>
-                            <SelectItem value="face-restoration-and-colorization">
+                            <SelectItem value={TASKS_MAP.faceRestorationAndColorization}>
                                 Face Restoration and Colorization
                             </SelectItem>
-                            <SelectItem value="face-restoration-and-colorization-and-inpainting">
+                            <SelectItem value={TASKS_MAP.faceRestorationAndColorizationAndInpainting}>
                                 Face Restoration, Colorization and Inpainting
                             </SelectItem>
                         </SelectContent>
@@ -61,7 +58,7 @@ export default function AdvancedSettings({
                     <Slider
                         value={[settings.numInferenceSteps]}
                         onValueChange={(value: any) =>
-                            onUpdateSetting('numInferenceSteps', value[0])
+                            onUpdateSetting(VIDEO_SETTINGS_MAP.numInferenceSteps, value[0])
                         }
                         min={1}
                         max={100}
@@ -77,7 +74,7 @@ export default function AdvancedSettings({
                     <Slider
                         value={[settings.decodeChunkSize]}
                         onValueChange={(value: any) =>
-                            onUpdateSetting('decodeChunkSize', value[0])
+                            onUpdateSetting(VIDEO_SETTINGS_MAP.decodeChunkSize, value[0])
                         }
                         min={1}
                         max={32}
@@ -93,7 +90,7 @@ export default function AdvancedSettings({
                     <Slider
                         value={[settings.overlap]}
                         onValueChange={(value: any) =>
-                            onUpdateSetting('overlap', value[0])
+                            onUpdateSetting(VIDEO_SETTINGS_MAP.overlap, value[0])
                         }
                         min={0}
                         max={10}
@@ -109,7 +106,7 @@ export default function AdvancedSettings({
                     <Slider
                         value={[settings.noiseAugStrength]}
                         onValueChange={(value: any) =>
-                            onUpdateSetting('noiseAugStrength', value[0])
+                            onUpdateSetting(VIDEO_SETTINGS_MAP.noiseAugStrength, value[0])
                         }
                         min={0}
                         max={1}
@@ -132,7 +129,7 @@ export default function AdvancedSettings({
                                     ]}
                                     onValueChange={(value: any) =>
                                         onUpdateSetting(
-                                            'minAppearanceGuidanceScale',
+                                            VIDEO_SETTINGS_MAP.minAppearanceGuidanceScale,
                                             value[0]
                                         )
                                     }
@@ -149,7 +146,7 @@ export default function AdvancedSettings({
                                     ]}
                                     onValueChange={(value: any) =>
                                         onUpdateSetting(
-                                            'maxAppearanceGuidanceScale',
+                                            VIDEO_SETTINGS_MAP.maxAppearanceGuidanceScale,
                                             value[0]
                                         )
                                     }
@@ -172,7 +169,7 @@ export default function AdvancedSettings({
                     <Slider
                         value={[settings.i2iNoiseStrength]}
                         onValueChange={(value: any) =>
-                            onUpdateSetting('i2iNoiseStrength', value[0])
+                            onUpdateSetting(VIDEO_SETTINGS_MAP.i2iNoiseStrength, value[0])
                         }
                         min={0}
                         max={2}
@@ -189,7 +186,7 @@ export default function AdvancedSettings({
                         type="number"
                         value={settings.seed}
                         onChange={(e) =>
-                            onUpdateSetting('seed', e.target.value)
+                            onUpdateSetting(VIDEO_SETTINGS_MAP.seed, e.target.value)
                         }
                         placeholder="Random"
                     />
@@ -199,7 +196,7 @@ export default function AdvancedSettings({
                 </div>
 
                 {settings.tasks ===
-                    'face-restoration-and-colorization-and-inpainting' && (
+                    TASKS_MAP.faceRestorationAndColorizationAndInpainting && (
                     <div className="space-y-2">
                         <Label>Mask</Label>
                         <FileUploaderMinimal

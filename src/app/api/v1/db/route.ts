@@ -3,7 +3,7 @@ import { createLoggerWithLabel } from '../../utils/logger';
 import { currentUser } from '@clerk/nextjs/server';
 import clientPromise from '@/app/api/utils/mongoClient';
 import { MongoSave } from '@/types';
-
+import { TASKS_MAP } from '@/constants';
 const logger = createLoggerWithLabel('DB');
 
 export async function POST(request: NextRequest) {
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
             created_at,
             tasks,
             ...(tasks ===
-                'face-restoration-and-colorization-and-inpainting' && {
+                TASKS_MAP.faceRestorationAndColorizationAndInpainting && {
                 mask,
             }),
         };
@@ -130,7 +130,7 @@ export async function POST(request: NextRequest) {
             user_id,
             video_url,
             ...(tasks ===
-                'face-restoration-and-colorization-and-inpainting' && {
+                TASKS_MAP.faceRestorationAndColorizationAndInpainting && {
                 mask,
             }),
             output_url,

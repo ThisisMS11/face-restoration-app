@@ -3,6 +3,7 @@ import Replicate from 'replicate';
 import { v2 as cloudinary } from 'cloudinary';
 import { createLoggerWithLabel } from '@/app/api/utils/logger';
 import { VideoSettings } from '@/types';
+import { TASKS_MAP } from '@/constants';
 
 const logger = createLoggerWithLabel('RESTORE_REPLICATE');
 
@@ -34,8 +35,7 @@ export async function POST(request: Request) {
         }
 
         if (
-            settings.tasks ===
-                'face-restoration-and-colorization-and-inpainting' &&
+            settings.tasks === TASKS_MAP.faceRestorationAndColorizationAndInpainting &&
             !settings.mask
         ) {
             logger.warn('Mask URL is required');
@@ -71,7 +71,7 @@ export async function POST(request: Request) {
             max_appearance_guidance_scale,
             min_appearance_guidance_scale,
             ...(tasks ===
-                'face-restoration-and-colorization-and-inpainting' && {
+                TASKS_MAP.faceRestorationAndColorizationAndInpainting && {
                 mask,
             }),
         };

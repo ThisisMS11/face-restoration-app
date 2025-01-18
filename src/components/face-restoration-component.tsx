@@ -40,6 +40,7 @@ import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
 import { VideoSettings, PredictionResponse } from '@/types';
 import Statistics from './statistics';
+import { TASKS_MAP } from '@/constants';
 
 export default function VideoGenerator() {
     const {
@@ -50,7 +51,7 @@ export default function VideoGenerator() {
         setEnhancedVideoUrl,
         cloudinaryOriginalUrl,
         setCloudinaryOriginalUrl,
-        handleEnhancingVideo,
+        StartRestoringVideo,
     } = useVideoProcessing();
 
     const [historyModalOpen, setHistoryModalOpen] = useState(false);
@@ -103,8 +104,7 @@ export default function VideoGenerator() {
         }
 
         if (
-            settings.tasks ===
-                'face-restoration-and-colorization-and-inpainting' &&
+            settings.tasks === TASKS_MAP.faceRestorationAndColorizationAndInpainting &&
             !uploadCareCdnMaskUrl
         ) {
             toast('Error', {
@@ -135,7 +135,7 @@ export default function VideoGenerator() {
                     ...settings,
                     video: uploadedUrl,
                     ...(settings.tasks ===
-                        'face-restoration-and-colorization-and-inpainting' && {
+                        TASKS_MAP.faceRestorationAndColorizationAndInpainting && {
                         mask: uploadCareCdnMaskUrl,
                     }),
                 };
@@ -151,7 +151,7 @@ export default function VideoGenerator() {
 
                     // Use updated settings directly instead of relying on state
                     const predictionId =
-                        await handleEnhancingVideo(updatedSettings);
+                        await StartRestoringVideo(updatedSettings);
                     if (!predictionId) {
                         throw new Error('No prediction ID returned');
                     }
@@ -182,7 +182,7 @@ export default function VideoGenerator() {
             try {
                 setStatus('processing');
                 await new Promise((resolve) => setTimeout(resolve, 10000));
-                const predictionId = await handleEnhancingVideo(settings);
+                const predictionId = await StartRestoringVideo(settings);
                 if (!predictionId) {
                     throw new Error('No prediction ID returned');
                 }
@@ -326,7 +326,7 @@ export default function VideoGenerator() {
                 completed_at: completed_at,
                 predict_time: predict_time.toString(),
                 ...(tasks ===
-                    'face-restoration-and-colorization-and-inpainting' && {
+                    TASKS_MAP.faceRestorationAndColorizationAndInpainting && {
                     mask,
                 }),
             });
@@ -388,7 +388,7 @@ export default function VideoGenerator() {
                 completed_at: completed_at,
                 predict_time: predict_time.toString(),
                 ...(tasks ===
-                    'face-restoration-and-colorization-and-inpainting' && {
+                    TASKS_MAP.faceRestorationAndColorizationAndInpainting && {
                     mask,
                 }),
             });

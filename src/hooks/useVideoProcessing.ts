@@ -18,8 +18,8 @@ export const useVideoProcessing = () => {
         return null;
     };
 
-    const handleEnhancingVideo = async (
-        settings: VideoSettings
+    const StartRestoringVideo = async (
+        settings: VideoSettings,
     ): Promise<string> => {
         const validationError = validateSettings(settings);
         if (validationError) {
@@ -73,6 +73,6 @@ export const useVideoProcessing = () => {
         setEnhancedVideoUrl,
         cloudinaryOriginalUrl,
         setCloudinaryOriginalUrl,
-        handleEnhancingVideo,
+        StartRestoringVideo,
     };
 };
