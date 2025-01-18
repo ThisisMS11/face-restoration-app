@@ -19,7 +19,7 @@ export const useVideoProcessing = () => {
     };
 
     const StartRestoringVideo = async (
-        settings: VideoSettings,
+        settings: VideoSettings
     ): Promise<string> => {
         const validationError = validateSettings(settings);
         if (validationError) {

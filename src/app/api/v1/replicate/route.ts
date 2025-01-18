@@ -35,7 +35,8 @@ export async function POST(request: Request) {
         }
 
         if (
-            settings.tasks === TASKS_MAP.faceRestorationAndColorizationAndInpainting &&
+            settings.tasks ===
+                TASKS_MAP.faceRestorationAndColorizationAndInpainting &&
             !settings.mask
         ) {
             logger.warn('Mask URL is required');

@@ -1,37 +1,35 @@
 export const VIDEO_SETTINGS_MAP = {
-    seed : 'seed',
-    tasks : 'tasks',
-    video :'video',
-    overlap :'overlap',
-    decodeChunkSize : 'decodeChunkSize',
-    i2iNoiseStrength : 'i2iNoiseStrength',
-    noiseAugStrength : 'noiseAugStrength',
-    numInferenceSteps : 'numInferenceSteps',
-    maxAppearanceGuidanceScale : 'maxAppearanceGuidanceScale',
-    minAppearanceGuidanceScale : 'minAppearanceGuidanceScale',
-    mask : 'mask',
+    seed: 'seed',
+    tasks: 'tasks',
+    video: 'video',
+    overlap: 'overlap',
+    decodeChunkSize: 'decodeChunkSize',
+    i2iNoiseStrength: 'i2iNoiseStrength',
+    noiseAugStrength: 'noiseAugStrength',
+    numInferenceSteps: 'numInferenceSteps',
+    maxAppearanceGuidanceScale: 'maxAppearanceGuidanceScale',
+    minAppearanceGuidanceScale: 'minAppearanceGuidanceScale',
+    mask: 'mask',
 } as const;
 
 export const TASKS_MAP = {
-    faceRestoration: "face-restoration",
-    faceRestorationAndColorization: "face-restoration-and-colorization",
-    faceRestorationAndColorizationAndInpainting: "face-restoration-and-colorization-and-inpainting"
+    faceRestoration: 'face-restoration',
+    faceRestorationAndColorization: 'face-restoration-and-colorization',
+    faceRestorationAndColorizationAndInpainting:
+        'face-restoration-and-colorization-and-inpainting',
 } as const;
 
 export const STATUS_MAP = {
-    default: "default",
-    processing: "processing",
-    uploading: "uploading",
-    succeeded: "succeeded",
-    error: "error",
-    failed: "failed"
+    default: 'default',
+    processing: 'processing',
+    uploading: 'uploading',
+    succeeded: 'succeeded',
+    error: 'error',
+    failed: 'failed',
 } as const;
-
 
 export const RETRIES = {
     MONGO_DB_SERVICE: 5,
     REPLICATE_SERVICE: 3,
     CLOUDINARY_SERVICE: 5,
 } as const;
-
-

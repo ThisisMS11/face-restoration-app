@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useVideoSettings } from '@/hooks/useVideoSettings';
 import { useVideoProcessing } from '@/hooks/useVideoProcessing';
 import VideoUploader from '@/components/VideoUploader';
@@ -17,19 +17,10 @@ import {
     TabsList,
 } from '@/imports/Shadcn_imports';
 import { Atom } from 'lucide-react';
-import { useVideoRestoringHandler } from '@/hooks/useVideoRestoringHandler'
+import { useVideoRestoringHandler } from '@/hooks/useVideoRestoringHandler';
 import { usePredictionHandling } from '@/hooks/usePredictionHandling';
 
 export default function VideoGenerator() {
-    const { settings, setSettings, updateSetting } = useVideoSettings();
-    const {
-        status,
-        setStatus,
-        setCloudinaryOriginalUrl,
-        enhancedVideoUrl,
-        setEnhancedVideoUrl,
-        setPredictionId,
-    } = useVideoProcessing();
     const [historyModalOpen, setHistoryModalOpen] = useState(false);
     const [uploadCareCdnUrl, setUploadCareCdnUrl] = useState<string | null>(
         null
@@ -37,9 +28,64 @@ export default function VideoGenerator() {
     const [uploadCareCdnMaskUrl, setUploadCareCdnMaskUrl] = useState<
         string | null
     >(null);
-    const { handleProcessingVideo } = useVideoRestoringHandler();
-    const { finalResponse } = usePredictionHandling();
 
+    /* Custom Hooks */
+    const { settings, setSettings, updateSetting } = useVideoSettings();
+    const {
+        status,
+        setStatus,
+        cloudinaryOriginalUrl,
+        setCloudinaryOriginalUrl,
+        enhancedVideoUrl,
+        setEnhancedVideoUrl,
+        setPredictionId,
+        StartRestoringVideo,
+    } = useVideoProcessing();
+
+    const predictionHandlingConfig = useMemo(
+        () => ({
+            setStatus,
+            setEnhancedVideoUrl,
+            setPredictionId,
+            StartRestoringVideo,
+            settings,
+        }),
+        [
+            setStatus,
+            setEnhancedVideoUrl,
+            setPredictionId,
+            StartRestoringVideo,
+            settings,
+        ]
+    );
+
+    const { pollPredictionStatus, finalResponse } = usePredictionHandling(
+        predictionHandlingConfig
+    );
+
+    const videoRestoringConfig = useMemo(
+        () => ({
+            settings,
+            setStatus,
+            setSettings,
+            setCloudinaryOriginalUrl,
+            cloudinaryOriginalUrl,
+            pollPredictionStatus,
+            StartRestoringVideo,
+        }),
+        [
+            settings,
+            setStatus,
+            setSettings,
+            setCloudinaryOriginalUrl,
+            cloudinaryOriginalUrl,
+            pollPredictionStatus,
+            StartRestoringVideo,
+        ]
+    );
+
+    const { handleProcessingVideo } =
+        useVideoRestoringHandler(videoRestoringConfig);
 
     /* To remove the video from the state */
     const handleRemoveVideo = () => {

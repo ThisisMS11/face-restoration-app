@@ -1,16 +1,28 @@
 import { useState } from 'react';
 import { toast } from '@/imports/Shadcn_imports';
-import { XCircle, CheckCircle2, Settings } from 'lucide-react';
-import { PredictionResponse } from '@/types';
-import { cloudinaryService, predictionService, databaseService } from '@/services/api';
+import { PredictionResponse, VideoSettings } from '@/types';
+import {
+    cloudinaryService,
+    predictionService,
+    databaseService,
+} from '@/services/api';
 import { RETRIES, STATUS_MAP, TASKS_MAP } from '@/constants';
-import { useVideoProcessing } from './useVideoProcessing';
-import { useVideoSettings } from './useVideoSettings'
 
-export const usePredictionHandling = () => {
-    const [finalResponse, setFinalResponse] = useState<PredictionResponse | null>(null);
-    const { setStatus, setEnhancedVideoUrl, setPredictionId, StartRestoringVideo } = useVideoProcessing();
-    const { settings } = useVideoSettings();
+export const usePredictionHandling = ({
+    setStatus,
+    setEnhancedVideoUrl,
+    setPredictionId,
+    StartRestoringVideo,
+    settings,
+}: {
+    setStatus: (status: string) => void;
+    setEnhancedVideoUrl: (url: string | null) => void;
+    setPredictionId: (id: string | null) => void;
+    StartRestoringVideo: (settings: VideoSettings) => Promise<string>;
+    settings: VideoSettings;
+}) => {
+    const [finalResponse, setFinalResponse] =
+        useState<PredictionResponse | null>(null);
 
     const pollPredictionStatus = async (
         id: string,
@@ -27,23 +39,28 @@ export const usePredictionHandling = () => {
                     await handlePredictionSuccess(data, outputUrl);
                     toast.success('Video Enhanced Successfully', {
                         description: 'Video Enhanced Successfully',
-                        duration: 3000
+                        duration: 3000,
                     });
                     break;
 
                 case STATUS_MAP.failed:
                     if (ReplicateRetryCount < RETRIES.REPLICATE_SERVICE) {
-                        console.log(`Replicate Service Retry attempt ${ReplicateRetryCount + 1} of ${RETRIES.REPLICATE_SERVICE}`);
-                        setStatus(STATUS_MAP.processing);
-                        setTimeout(
-                            () => { StartRestoringVideo(settings), pollPredictionStatus(id, ReplicateRetryCount + 1) },
-                            8000
+                        console.log(
+                            `Replicate Service Retry attempt ${ReplicateRetryCount + 1} of ${RETRIES.REPLICATE_SERVICE}`
                         );
+                        setStatus(STATUS_MAP.processing);
+                        setTimeout(() => {
+                            StartRestoringVideo(settings),
+                                pollPredictionStatus(
+                                    id,
+                                    ReplicateRetryCount + 1
+                                );
+                        }, 8000);
                     } else {
                         console.log('Failed after 5 retry attempts');
                         toast.error('Failed to restore the video', {
                             description: 'Please try again',
-                            duration: 3000
+                            duration: 3000,
                         });
                         await handlePredictionFailed(data);
                         setStatus(STATUS_MAP.failed);
@@ -67,7 +84,10 @@ export const usePredictionHandling = () => {
     };
 
     /* Handle Prediction Success */
-    const handlePredictionSuccess = async (data: PredictionResponse, outputUrl: string) => {
+    const handlePredictionSuccess = async (
+        data: PredictionResponse,
+        outputUrl: string
+    ) => {
         try {
             if (!data || !outputUrl) {
                 throw new Error('Invalid prediction data or output URL');
@@ -139,7 +159,6 @@ export const usePredictionHandling = () => {
         }
     };
 
-
     /* Handle Prediction Failed */
     const handlePredictionFailed = async (data: PredictionResponse) => {
         try {
@@ -207,6 +226,6 @@ export const usePredictionHandling = () => {
         finalResponse,
         pollPredictionStatus,
         handlePredictionSuccess,
-        handlePredictionFailed
+        handlePredictionFailed,
     };
 };

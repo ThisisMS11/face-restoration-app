@@ -44,10 +44,16 @@ export default function AdvancedSettings({
                             <SelectItem value={TASKS_MAP.faceRestoration}>
                                 Face Restoration
                             </SelectItem>
-                            <SelectItem value={TASKS_MAP.faceRestorationAndColorization}>
+                            <SelectItem
+                                value={TASKS_MAP.faceRestorationAndColorization}
+                            >
                                 Face Restoration and Colorization
                             </SelectItem>
-                            <SelectItem value={TASKS_MAP.faceRestorationAndColorizationAndInpainting}>
+                            <SelectItem
+                                value={
+                                    TASKS_MAP.faceRestorationAndColorizationAndInpainting
+                                }
+                            >
                                 Face Restoration, Colorization and Inpainting
                             </SelectItem>
                         </SelectContent>
@@ -58,7 +64,10 @@ export default function AdvancedSettings({
                     <Slider
                         value={[settings.numInferenceSteps]}
                         onValueChange={(value: any) =>
-                            onUpdateSetting(VIDEO_SETTINGS_MAP.numInferenceSteps, value[0])
+                            onUpdateSetting(
+                                VIDEO_SETTINGS_MAP.numInferenceSteps,
+                                value[0]
+                            )
                         }
                         min={1}
                         max={100}
@@ -74,7 +83,10 @@ export default function AdvancedSettings({
                     <Slider
                         value={[settings.decodeChunkSize]}
                         onValueChange={(value: any) =>
-                            onUpdateSetting(VIDEO_SETTINGS_MAP.decodeChunkSize, value[0])
+                            onUpdateSetting(
+                                VIDEO_SETTINGS_MAP.decodeChunkSize,
+                                value[0]
+                            )
                         }
                         min={1}
                         max={32}
@@ -90,7 +102,10 @@ export default function AdvancedSettings({
                     <Slider
                         value={[settings.overlap]}
                         onValueChange={(value: any) =>
-                            onUpdateSetting(VIDEO_SETTINGS_MAP.overlap, value[0])
+                            onUpdateSetting(
+                                VIDEO_SETTINGS_MAP.overlap,
+                                value[0]
+                            )
                         }
                         min={0}
                         max={10}
@@ -106,7 +121,10 @@ export default function AdvancedSettings({
                     <Slider
                         value={[settings.noiseAugStrength]}
                         onValueChange={(value: any) =>
-                            onUpdateSetting(VIDEO_SETTINGS_MAP.noiseAugStrength, value[0])
+                            onUpdateSetting(
+                                VIDEO_SETTINGS_MAP.noiseAugStrength,
+                                value[0]
+                            )
                         }
                         min={0}
                         max={1}
@@ -169,7 +187,10 @@ export default function AdvancedSettings({
                     <Slider
                         value={[settings.i2iNoiseStrength]}
                         onValueChange={(value: any) =>
-                            onUpdateSetting(VIDEO_SETTINGS_MAP.i2iNoiseStrength, value[0])
+                            onUpdateSetting(
+                                VIDEO_SETTINGS_MAP.i2iNoiseStrength,
+                                value[0]
+                            )
                         }
                         min={0}
                         max={2}
@@ -186,7 +207,10 @@ export default function AdvancedSettings({
                         type="number"
                         value={settings.seed}
                         onChange={(e) =>
-                            onUpdateSetting(VIDEO_SETTINGS_MAP.seed, e.target.value)
+                            onUpdateSetting(
+                                VIDEO_SETTINGS_MAP.seed,
+                                e.target.value
+                            )
                         }
                         placeholder="Random"
                     />

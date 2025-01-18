@@ -1,18 +1,29 @@
 import { toast } from '@/imports/Shadcn_imports';
 import { STATUS_MAP, TASKS_MAP } from '@/constants';
 import { cloudinaryService } from '@/services/api';
-import { useVideoProcessing } from './useVideoProcessing';
-import { useVideoSettings } from './useVideoSettings';
-import { usePredictionHandling } from './usePredictionHandling';
+import { VideoSettings } from '@/types';
 
-export const useVideoRestoringHandler = () => {
-
-    const handleProcessingVideo = async (videoUrl: string, uploadCareCdnMaskUrl: string | null) => {
-
-        const { cloudinaryOriginalUrl, setStatus, setCloudinaryOriginalUrl, StartRestoringVideo } = useVideoProcessing();
-        const { settings, setSettings } = useVideoSettings();
-        const { pollPredictionStatus } = usePredictionHandling();
-
+export const useVideoRestoringHandler = ({
+    settings,
+    setStatus,
+    setSettings,
+    setCloudinaryOriginalUrl,
+    cloudinaryOriginalUrl,
+    pollPredictionStatus,
+    StartRestoringVideo,
+}: {
+    settings: VideoSettings;
+    setStatus: (status: string) => void;
+    setSettings: (settings: VideoSettings) => void;
+    setCloudinaryOriginalUrl: (url: string) => void;
+    cloudinaryOriginalUrl: string | null;
+    pollPredictionStatus: (predictionId: string) => void;
+    StartRestoringVideo: (settings: VideoSettings) => Promise<string>;
+}) => {
+    const handleProcessingVideo = async (
+        videoUrl: string,
+        uploadCareCdnMaskUrl: string | null
+    ) => {
         // console.log(settings);
         // console.log(uploadCareCdnMaskUrl);
 
@@ -25,7 +36,8 @@ export const useVideoRestoringHandler = () => {
         }
 
         if (
-            settings.tasks === TASKS_MAP.faceRestorationAndColorizationAndInpainting &&
+            settings.tasks ===
+                TASKS_MAP.faceRestorationAndColorizationAndInpainting &&
             !uploadCareCdnMaskUrl
         ) {
             toast.error('Error', {
