@@ -27,7 +27,11 @@ import { FileUploaderMinimal } from '@uploadcare/react-uploader';
 import '@uploadcare/react-uploader/core.css';
 import { Progress } from '@/components/ui/progress';
 import { VideoHistoryModal } from '@/components/video-history-model';
-import { videoAPI } from '@/services/api';
+import {
+    databaseService,
+    cloudinaryService,
+    predictionService,
+} from '@/services/api';
 import { useVideoProcessing } from '@/hooks/useVideoProcessing';
 import { toast } from 'sonner';
 import { Slider } from '@/components/ui/slider';
@@ -116,7 +120,7 @@ export default function VideoGenerator() {
         let uploadedUrl = cloudinaryOriginalUrl;
         if (!cloudinaryOriginalUrl) {
             try {
-                const uploadResult = await videoAPI.uploadToCloudinary(
+                const uploadResult = await cloudinaryService.upload(
                     videoUrl,
                     'original'
                 );
@@ -198,7 +202,7 @@ export default function VideoGenerator() {
     /* Get the prediction status */
     const pollPredictionStatus = async (id: string, retryCount = 0) => {
         try {
-            const data = await videoAPI.getPredictionStatus(id);
+            const data = await predictionService.getStatus(id);
             console.log(data);
             const outputUrl = data.output_url
                 ? JSON.parse(data.output_url)
@@ -275,7 +279,7 @@ export default function VideoGenerator() {
             setFinalResponse(data);
 
             // Upload enhanced video to Cloudinary
-            const cloudinaryData = await videoAPI.uploadToCloudinary(
+            const cloudinaryData = await cloudinaryService.upload(
                 outputUrl,
                 'enhanced'
             );
@@ -305,7 +309,7 @@ export default function VideoGenerator() {
             } = data;
 
             // Save to database with properly formatted MongoSave type
-            await videoAPI.saveToDatabase({
+            await databaseService.saveInfo({
                 status: status,
                 output_url: cloudinaryData.url,
                 tasks: tasks,
@@ -367,7 +371,7 @@ export default function VideoGenerator() {
             } = data;
 
             // Save failed prediction to database with properly formatted MongoSave type
-            await videoAPI.saveToDatabase({
+            await databaseService.saveInfo({
                 status: status,
                 output_url: '',
                 tasks: tasks,

@@ -1,0 +1,97 @@
+import { Progress } from '@/components/ui/progress';
+import { Button } from '@/components/ui/button';
+import { Upload, Wand2, XCircle, RefreshCcw } from 'lucide-react';
+
+interface VideoPreviewProps {
+    status: string;
+    enhancedVideoUrl: string | null;
+    onRetry: () => void;
+}
+
+export default function RightSideProcess({
+    status,
+    enhancedVideoUrl,
+    onRetry,
+}: VideoPreviewProps) {
+    switch (status) {
+        case 'uploading':
+            return (
+                <div className="space-y-4  h-full  flex flex-col items-center justify-center">
+                    <div className="mx-auto w-20 h-20 rounded-full bg-muted flex items-center justify-center animate-pulse">
+                        <Upload className="w-10 h-10 text-muted-foreground" />
+                    </div>
+                    <h2 className="text-2xl font-semibold">
+                        Uploading Video...
+                    </h2>
+                    <Progress value={33} className="w-[65%] mx-auto" />
+                </div>
+            );
+        case 'processing':
+            return (
+                <div className="space-y-4  h-full  flex flex-col items-center justify-center">
+                    <div className="mx-auto w-20 h-20 rounded-full bg-muted flex items-center justify-center animate-spin">
+                        <Wand2 className="w-10 h-10 text-muted-foreground" />
+                    </div>
+                    <h2 className="text-2xl font-semibold">
+                        Restoring Video...
+                    </h2>
+                    <Progress value={66} className="w-[65%] mx-auto" />
+                </div>
+            );
+        case 'succeeded':
+            return (
+                <div className="h-[60%]">
+                    <video
+                        className="w-full aspect-video bg-muted rounded-lg h-full"
+                        controls
+                    >
+                        <source
+                            src={
+                                enhancedVideoUrl ||
+                                'https://res.cloudinary.com/cloudinarymohit/video/upload/v1737108144/task_2_restore_enhanced_videos/f9n2kceffut9v8befqrz.mp4'
+                            }
+                            type="video/mp4"
+                        />
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
+            );
+        case 'failed':
+            return (
+                <div className="h-[60%] flex items-center flex-col justify-center space-y-4">
+                    <div className="mx-auto w-20 h-20 rounded-full bg-red-100 flex items-center justify-center">
+                        <XCircle className="w-10 h-10 text-red-600" />
+                    </div>
+                    <h2 className="text-2xl font-semibold text-red-600">
+                        Processing Failed
+                    </h2>
+                    <p className="text-muted-foreground">
+                        Please try again or contact support if the issue
+                        persists.
+                    </p>
+                    <Button variant="outline" onClick={onRetry}>
+                        <RefreshCcw className="w-4 h-4 mr-2" />
+                        Retry
+                    </Button>
+                </div>
+            );
+        default:
+            return (
+                <div className="h-full">
+                    <div className="flex flex-col items-center justify-center h-full text-center">
+                        <div className="space-y-4">
+                            <div className="mx-auto w-20 h-20 rounded-full bg-muted flex items-center justify-center">
+                                <Wand2 className="w-10 h-10 text-muted-foreground" />
+                            </div>
+                            <h2 className="text-2xl font-semibold">
+                                Ready to Restore the Quality of Your Video
+                            </h2>
+                            <p className="text-muted-foreground">
+                                Upload a video and restore its quality
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            );
+    }
+}

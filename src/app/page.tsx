@@ -1,6 +1,6 @@
 'use client';
 import { SignedIn, SignedOut } from '@clerk/nextjs';
-import FaceRestorer from '@/components/face-restoration-component';
+import FaceRestorer from '@/components/face-restoration-component-refactored';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
 import { CheckCircle2 } from 'lucide-react';
