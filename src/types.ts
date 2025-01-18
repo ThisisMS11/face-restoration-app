@@ -89,11 +89,11 @@ export interface VideoUploadOptions {
     eager_async?: boolean;
     video_codec?: string;
     bit_rate?: string;
-    fps?: number | string; // Allow string for 'original'
+    fps?: number | string;
     quality_analysis?: boolean;
     transformation?: Array<{
-        width?: number | string; // Allow string for 'original'
-        height?: number | string; // Allow string for 'original'
+        width?: number | string;
+        height?: number | string;
         crop?: string;
         audio_codec?: string;
         audio_frequency?: number;

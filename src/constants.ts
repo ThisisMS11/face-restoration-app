@@ -33,3 +33,13 @@ export const RETRIES = {
     REPLICATE_SERVICE: 3,
     CLOUDINARY_SERVICE: 5,
 } as const;
+
+export const VIDEO_TYPE = {
+    ORIGINAL: 'original',
+    ENHANCED: 'enhanced',
+} as const;
+
+export const CLOUDINARY_FOLDER = {
+    ORIGINAL: 'task_2_restore_original_videos',
+    ENHANCED: 'task_2_restore_enhanced_videos',
+} as const;

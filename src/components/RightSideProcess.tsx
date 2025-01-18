@@ -41,19 +41,25 @@ export default function RightSideProcess({
         case 'succeeded':
             return (
                 <div className="h-[60%]">
-                    <video
-                        className="w-full aspect-video bg-muted rounded-lg h-full"
-                        controls
-                    >
-                        <source
-                            src={
-                                enhancedVideoUrl ||
-                                'https://res.cloudinary.com/cloudinarymohit/video/upload/v1737108144/task_2_restore_enhanced_videos/f9n2kceffut9v8befqrz.mp4'
-                            }
-                            type="video/mp4"
-                        />
-                        Your browser does not support the video tag.
-                    </video>
+                    {
+                        enhancedVideoUrl ? (
+                            <video
+                                className="w-full aspect-video bg-muted rounded-lg h-full"
+                                controls
+                            >
+                                <source
+                                    src={enhancedVideoUrl}
+                                type="video/mp4"
+                            />
+                            Your browser does not support the video tag.
+                        </video>
+                    ) : (
+                        <div className="h-full flex items-center justify-center">
+                            <p className="text-muted-foreground">
+                                No video found
+                            </p>
+                        </div>
+                    )}
                 </div>
             );
         case 'failed':

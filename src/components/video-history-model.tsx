@@ -21,6 +21,7 @@ import { Loader2 } from 'lucide-react';
 import { formatDuration } from '@/utils/utilFunctions';
 import { VideoProcess, VideoHistoryModalProps } from '@/types';
 import { TASKS_MAP } from '@/constants';
+import { databaseService } from '@/services/api';
 
 export function VideoHistoryModal({
     open,
@@ -39,12 +40,9 @@ export function VideoHistoryModal({
 
     const fetchHistory = async () => {
         try {
-            const url = `${process.env.NEXT_PUBLIC_APP_URL}/api/v1/db`;
-            const response = await fetch(url);
-            const result = await response.json();
-
-            console.log({ result });
-            setHistory(result.data);
+            const result = await databaseService.fetchHistory();
+            console.log('History Fetched Successfully');
+            setHistory(result);
         } catch (error) {
             console.error('Failed to fetch history:', error);
         } finally {

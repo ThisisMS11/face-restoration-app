@@ -1,107 +1,47 @@
-import { useState } from 'react';
-import { toast } from '@/imports/Shadcn_imports';
-import { PredictionResponse, VideoSettings } from '@/types';
+import { PredictionResponse } from '@/types';
 import {
     cloudinaryService,
     predictionService,
     databaseService,
 } from '@/services/api';
-import { RETRIES, STATUS_MAP, TASKS_MAP } from '@/constants';
+import { STATUS_MAP, TASKS_MAP, VIDEO_TYPE } from '@/constants';
 
-export const usePredictionHandling = ({
-    setStatus,
-    setEnhancedVideoUrl,
-    setPredictionId,
-    StartRestoringVideo,
-    settings,
-}: {
-    setStatus: (status: string) => void;
-    setEnhancedVideoUrl: (url: string | null) => void;
-    setPredictionId: (id: string | null) => void;
-    StartRestoringVideo: (settings: VideoSettings) => Promise<string>;
-    settings: VideoSettings;
-}) => {
-    const [finalResponse, setFinalResponse] =
-        useState<PredictionResponse | null>(null);
-
-    const pollPredictionStatus = async (
-        id: string,
-        ReplicateRetryCount = 0
-    ) => {
+export const usePredictionHandling = () => {
+    /* Get prediction data from redis */
+    const pollPredictionStatus = async (id: string) => {
         try {
             const data = await predictionService.getStatus(id);
             console.log(data);
-            const outputUrl = data.output_url
-                ? JSON.parse(data.output_url)
-                : null;
-            switch (data.status) {
-                case STATUS_MAP.succeeded:
-                    await handlePredictionSuccess(data, outputUrl);
-                    toast.success('Video Enhanced Successfully', {
-                        description: 'Video Enhanced Successfully',
-                        duration: 3000,
-                    });
-                    break;
-
-                case STATUS_MAP.failed:
-                    if (ReplicateRetryCount < RETRIES.REPLICATE_SERVICE) {
-                        console.log(
-                            `Replicate Service Retry attempt ${ReplicateRetryCount + 1} of ${RETRIES.REPLICATE_SERVICE}`
-                        );
-                        setStatus(STATUS_MAP.processing);
-                        setTimeout(() => {
-                            StartRestoringVideo(settings),
-                                pollPredictionStatus(
-                                    id,
-                                    ReplicateRetryCount + 1
-                                );
-                        }, 8000);
-                    } else {
-                        console.log('Failed after 5 retry attempts');
-                        toast.error('Failed to restore the video', {
-                            description: 'Please try again',
-                            duration: 3000,
-                        });
-                        await handlePredictionFailed(data);
-                        setStatus(STATUS_MAP.failed);
-                    }
-                    break;
-
-                default:
-                    setStatus(STATUS_MAP.processing);
-                    setTimeout(
-                        () => pollPredictionStatus(id, ReplicateRetryCount),
-                        8000
-                    );
-            }
+            return data;
         } catch (error) {
             console.error('Polling error:', error);
-            setTimeout(
-                () => pollPredictionStatus(id, ReplicateRetryCount),
-                8000
-            );
+            throw new Error('Failed to get prediction data');
         }
     };
 
-    /* Handle Prediction Success */
-    const handlePredictionSuccess = async (
+    const savePredictionData = async (
+        data: PredictionResponse,
+        outputUrl?: string
+    ) => {
+        if (data.status === STATUS_MAP.succeeded && outputUrl) {
+            await savePredictionSuccess(data, outputUrl);
+        } else if (data.status === STATUS_MAP.failed) {
+            await savePredictionFailed(data);
+        } else {
+            throw new Error('Invalid prediction data or output URL');
+        }
+    };
+
+    /* Handle Prediction Success : upload replicate output to cloudinary and save to database */
+    const savePredictionSuccess = async (
         data: PredictionResponse,
         outputUrl: string
     ) => {
         try {
-            if (!data || !outputUrl) {
-                throw new Error('Invalid prediction data or output URL');
-            }
-
-            // Set UI state first
-            setEnhancedVideoUrl(outputUrl);
-            setStatus(STATUS_MAP.succeeded);
-            setFinalResponse(data);
-
             // Upload enhanced video to Cloudinary
             const cloudinaryData = await cloudinaryService.upload(
                 outputUrl,
-                'enhanced'
+                VIDEO_TYPE.ENHANCED
             );
             if (!cloudinaryData?.url) {
                 throw new Error(
@@ -152,26 +92,13 @@ export const usePredictionHandling = ({
             });
         } catch (error) {
             console.error('Error in handlePredictionSuccess:', error);
-            setStatus(STATUS_MAP.error);
-            setEnhancedVideoUrl(null);
-            setPredictionId(null);
             throw error;
         }
     };
 
-    /* Handle Prediction Failed */
-    const handlePredictionFailed = async (data: PredictionResponse) => {
+    /* Handle Prediction Failed : set status to failed and save to database */
+    const savePredictionFailed = async (data: PredictionResponse) => {
         try {
-            if (!data) {
-                throw new Error('No prediction data provided');
-            }
-
-            // Reset UI state first
-            setStatus(STATUS_MAP.failed);
-            setEnhancedVideoUrl(null);
-            setPredictionId(null);
-            setFinalResponse(data);
-
             // Extract required fields from PredictionResponse
             const {
                 tasks,
@@ -215,17 +142,12 @@ export const usePredictionHandling = ({
             });
         } catch (error) {
             console.error('Error in handlePredictionFailed:', error);
-            setStatus(STATUS_MAP.failed);
-            setEnhancedVideoUrl(null);
-            setPredictionId(null);
             throw error;
         }
     };
 
     return {
-        finalResponse,
         pollPredictionStatus,
-        handlePredictionSuccess,
-        handlePredictionFailed,
+        savePredictionData,
     };
 };

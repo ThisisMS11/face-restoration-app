@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { redisClient, CheckRedisConnection } from '@/app/api/utils/redisClient';
+import { redisClient, ensureConnection } from '@/app/api/utils/redisClient';
 import { createLoggerWithLabel } from '@/app/api/utils/logger';
 import { TASKS_MAP } from '@/constants';
 
@@ -80,9 +80,6 @@ async function storePredictionData(predictionId: string, payload: any) {
 export async function POST(request: Request) {
     try {
         const payload = await request.json();
-
-        logger.info(`payload : ${JSON.stringify(payload)}`);
-
         logger.info(
             `Webhook received for prediction ${payload.id} with status ${payload.status}`
         );
@@ -101,7 +98,7 @@ export async function POST(request: Request) {
 
         // Check Redis connection
 
-        const redisConnected = await CheckRedisConnection(redisClient);
+        const redisConnected = await ensureConnection();
 
         if (!redisConnected) {
             logger.error('Redis connection failed');

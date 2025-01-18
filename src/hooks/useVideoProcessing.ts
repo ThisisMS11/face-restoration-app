@@ -1,15 +1,19 @@
-import { VideoSettings } from '@/types';
+import { PredictionResponse, VideoSettings } from '@/types';
 import { useState } from 'react';
+import { replicateService } from '@/services/api';
+import { STATUS_MAP } from '@/constants';
 
 export const useVideoProcessing = () => {
     const [predictionId, setPredictionId] = useState<string | null>(null);
-    const [status, setStatus] = useState<string>('default');
+    const [status, setStatus] = useState<string>(STATUS_MAP.default);
     const [enhancedVideoUrl, setEnhancedVideoUrl] = useState<string | null>(
         null
     );
     const [cloudinaryOriginalUrl, setCloudinaryOriginalUrl] = useState<
         string | null
     >(null);
+    const [finalResponse, setFinalResponse] =
+        useState<PredictionResponse | null>(null);
 
     const validateSettings = (settings: VideoSettings): string | null => {
         if (!settings.video) return 'No video URL provided';
@@ -18,49 +22,30 @@ export const useVideoProcessing = () => {
         return null;
     };
 
-    const StartRestoringVideo = async (
+    const startRestoringVideo = async (
         settings: VideoSettings
     ): Promise<string> => {
         const validationError = validateSettings(settings);
         if (validationError) {
             console.error(validationError);
-            setStatus('error');
             throw new Error(validationError);
         }
 
         try {
-            const response = await fetch(
-                `${process.env.NEXT_PUBLIC_APP_URL}/api/v1/replicate`,
-                {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ settings }),
-                }
-            );
-
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(
-                    `Server error: ${response.status} ${errorData.message || 'Unknown error'}`
-                );
-            }
-
-            const data = await response.json();
-
-            if (!data?.id) {
+            const response = await replicateService.processVideo(settings);
+            if (!response?.id) {
                 throw new Error('Invalid response: missing prediction ID');
             }
-
-            setPredictionId(data.id);
-            return data.id;
+            setPredictionId(response.id);
+            console.log('Prediction ID:', response.id);
+            return response.id;
         } catch (error) {
             const message =
                 error instanceof Error
                     ? error.message
-                    : 'Failed to enhance video';
-            console.error('Enhancement error:', message);
-            setStatus('error');
-            throw error;
+                    : 'Failed to restore video';
+            console.error('Restoration error:', message);
+            throw new Error(`Error starting restoration : ${message}`);
         }
     };
 
@@ -73,6 +58,8 @@ export const useVideoProcessing = () => {
         setEnhancedVideoUrl,
         cloudinaryOriginalUrl,
         setCloudinaryOriginalUrl,
-        StartRestoringVideo,
+        startRestoringVideo,
+        finalResponse,
+        setFinalResponse,
     };
 };

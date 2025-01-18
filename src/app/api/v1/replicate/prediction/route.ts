@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { redisClient, CheckRedisConnection } from '@/app/api/utils/redisClient';
+import { redisClient, ensureConnection } from '@/app/api/utils/redisClient';
 import { createLoggerWithLabel } from '@/app/api/utils/logger';
 
 const logger = createLoggerWithLabel('REPLICATE_PREDICTION');
@@ -8,7 +8,7 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
 
-    const redisConnected = await CheckRedisConnection(redisClient);
+    const redisConnected = await ensureConnection();
 
     if (!redisConnected) {
         logger.error(`Redis connection failed`);

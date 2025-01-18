@@ -38,7 +38,7 @@ export default function VideoUploader({
                         <div className="w-full space-y-2">
                             <div className="relative w-full aspect-video">
                                 <video
-                                    className="w-full h-full rounded-lg object-cover"
+                                    className="w-full h-full rounded-lg"
                                     controls
                                     src={uploadCareCdnUrl}
                                 />

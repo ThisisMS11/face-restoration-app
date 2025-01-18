@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { v2 as cloudinary } from 'cloudinary';
 import { createLoggerWithLabel } from '../../utils/logger';
 import { VideoUploadOptions } from '@/types';
+import { VIDEO_TYPE, CLOUDINARY_FOLDER } from '@/constants';
 
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -44,11 +45,9 @@ export async function POST(request: NextRequest) {
     }
 
     const folder =
-        type === 'original'
-            ? process.env.CLOUDINARY_ORIGINAL_FOLDER ||
-              'task_2_restore_original_videos'
-            : process.env.CLOUDINARY_ENHANCED_FOLDER ||
-              'task_2_restore_enhanced_videos';
+        type === VIDEO_TYPE.ORIGINAL
+            ? CLOUDINARY_FOLDER.ORIGINAL
+            : CLOUDINARY_FOLDER.ENHANCED;
 
     try {
         const uploadOptions: VideoUploadOptions = {
@@ -57,7 +56,7 @@ export async function POST(request: NextRequest) {
         };
 
         // Modified settings for original videos
-        if (type === 'original') {
+        if (type === VIDEO_TYPE.ORIGINAL) {
             const videoSettings = getOptimalVideoSettings();
             Object.assign(uploadOptions, {
                 ...videoSettings,
@@ -68,6 +67,9 @@ export async function POST(request: NextRequest) {
                 transformation: [
                     {
                         quality: 'auto:best',
+                        audio_codec: 'aac',
+                        audio_frequency: 44100,
+                        audio_bitrate: '128k',
                     },
                 ],
             });
@@ -86,7 +88,7 @@ export async function POST(request: NextRequest) {
 
         // Return appropriate URL based on video type
         const responseUrl =
-            type === 'original' && result.eager?.[0]?.secure_url
+            type === VIDEO_TYPE.ORIGINAL && result.eager?.[0]?.secure_url
                 ? result.eager[0].secure_url
                 : result.secure_url;
 

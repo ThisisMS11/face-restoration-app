@@ -12,7 +12,6 @@ export default function ActionButtons({
     status,
     onProcess,
     onHistory,
-    isDisabled = false,
 }: ActionButtonsProps) {
     return (
         <div className="flex gap-3 h-[15%] px-2">

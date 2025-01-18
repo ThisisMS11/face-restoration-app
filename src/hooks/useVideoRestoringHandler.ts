@@ -1,60 +1,40 @@
-import { toast } from '@/imports/Shadcn_imports';
-import { STATUS_MAP, TASKS_MAP } from '@/constants';
+import { STATUS_MAP, TASKS_MAP, VIDEO_TYPE } from '@/constants';
 import { cloudinaryService } from '@/services/api';
 import { VideoSettings } from '@/types';
 
-export const useVideoRestoringHandler = ({
-    settings,
-    setStatus,
-    setSettings,
-    setCloudinaryOriginalUrl,
-    cloudinaryOriginalUrl,
-    pollPredictionStatus,
-    StartRestoringVideo,
-}: {
-    settings: VideoSettings;
-    setStatus: (status: string) => void;
-    setSettings: (settings: VideoSettings) => void;
-    setCloudinaryOriginalUrl: (url: string) => void;
+interface Args {
+    uploadCareCdnUrl: string;
+    uploadCareCdnMaskUrl: string | null;
     cloudinaryOriginalUrl: string | null;
-    pollPredictionStatus: (predictionId: string) => void;
-    StartRestoringVideo: (settings: VideoSettings) => Promise<string>;
-}) => {
-    const handleProcessingVideo = async (
-        videoUrl: string,
-        uploadCareCdnMaskUrl: string | null
-    ) => {
-        // console.log(settings);
-        // console.log(uploadCareCdnMaskUrl);
+    setCloudinaryOriginalUrl: (url: string) => void;
+    setStatus: (status: string) => void;
+    settings: VideoSettings;
+    setSettings: (settings: VideoSettings) => void;
+    startRestoringVideo: (settings: VideoSettings) => Promise<string>;
+}
 
-        if (!videoUrl) {
-            toast.error('Error', {
-                description: 'Please upload a video',
-                duration: 3000,
-            });
-            return;
-        }
+export const useVideoRestoringHandler = () => {
+    /* Handle video processing : returns predictionId or error */
+    const handleProcessingVideo = async (args: Args) => {
+        const {
+            uploadCareCdnUrl,
+            uploadCareCdnMaskUrl,
+            cloudinaryOriginalUrl,
+            setCloudinaryOriginalUrl,
+            setStatus,
+            settings,
+            setSettings,
+            startRestoringVideo,
+        } = args;
 
-        if (
-            settings.tasks ===
-                TASKS_MAP.faceRestorationAndColorizationAndInpainting &&
-            !uploadCareCdnMaskUrl
-        ) {
-            toast.error('Error', {
-                description: 'Please upload a mask image for inpainting',
-                duration: 3000,
-            });
-            return;
-        }
-
-        setStatus(STATUS_MAP.uploading);
         /* upload the video to cloudinary if not already uploaded */
         let uploadedUrl = cloudinaryOriginalUrl;
         if (!cloudinaryOriginalUrl) {
+            setStatus(STATUS_MAP.uploading);
             try {
                 const uploadResult = await cloudinaryService.upload(
-                    videoUrl,
-                    'original'
+                    uploadCareCdnUrl,
+                    VIDEO_TYPE.ORIGINAL
                 );
                 if (!uploadResult?.url) {
                     throw new Error('Failed to get upload URL from Cloudinary');
@@ -83,47 +63,36 @@ export const useVideoRestoringHandler = ({
 
                     // Use updated settings directly instead of relying on state
                     const predictionId =
-                        await StartRestoringVideo(updatedSettings);
+                        await startRestoringVideo(updatedSettings);
                     if (!predictionId) {
                         throw new Error('No prediction ID returned');
                     }
-                    pollPredictionStatus(predictionId);
+                    return predictionId;
                 } catch (error) {
-                    console.error('Error enhancing video:', error);
-                    toast.error('Error', {
-                        description: 'Something Went Wrong ! Please Try Again',
-                        duration: 3000,
-                    });
-                    return;
+                    console.error('Error restoring video:', error);
+                    throw new Error(`Error restoring video : ${error}`);
                 }
             } catch (error) {
                 console.error(
                     'Error uploading original video to cloudinary:',
                     error
                 );
-                toast.error('Error', {
-                    description: 'Cloudinary Upload Error ! Please Try Again',
-                    duration: 3000,
-                });
-                return;
+                throw new Error(
+                    `Error uploading original video to cloudinary : ${error}`
+                );
             }
         } else {
             // If cloudinaryOriginalUrl exists, use existing settings
             try {
                 setStatus(STATUS_MAP.processing);
-                await new Promise((resolve) => setTimeout(resolve, 10000));
-                const predictionId = await StartRestoringVideo(settings);
+                const predictionId = await startRestoringVideo(settings);
                 if (!predictionId) {
                     throw new Error('No prediction ID returned');
                 }
-                pollPredictionStatus(predictionId);
+                return predictionId;
             } catch (error) {
                 console.error('Error enhancing video:', error);
-                toast.error('Error', {
-                    description: 'Something Went Wrong ! Please Try Again',
-                    duration: 3000,
-                });
-                return;
+                throw new Error(`Error enhancing video : ${error}`);
             }
         }
     };

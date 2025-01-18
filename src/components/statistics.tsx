@@ -5,14 +5,13 @@ import {
     Clock,
     CheckCircle,
     Timer,
-    Video,
     Download,
     Link2,
     Settings,
 } from 'lucide-react';
 import { PredictionResponse } from '@/types';
 import { Button } from '@/components/ui/button';
-import { formatDate } from '@/utils/utilFunctions';
+import { format } from 'date-fns';
 
 const Statistics = ({ data }: { data: PredictionResponse | null }) => {
     if (!data) {
@@ -79,7 +78,10 @@ const Statistics = ({ data }: { data: PredictionResponse | null }) => {
                                         Created At
                                     </p>
                                     <p className="font-medium">
-                                        {formatDate(data.created_at)}
+                                        {format(
+                                            new Date(data.created_at),
+                                            'PPp'
+                                        )}
                                     </p>
                                 </div>
                             </div>
@@ -93,7 +95,10 @@ const Statistics = ({ data }: { data: PredictionResponse | null }) => {
                                         Completed At
                                     </p>
                                     <p className="font-medium">
-                                        {formatDate(data.created_at)}
+                                        {format(
+                                            new Date(data.completed_at),
+                                            'PPp'
+                                        )}
                                     </p>
                                 </div>
                             </div>
