@@ -41,7 +41,6 @@ export function VideoHistoryModal({
     const fetchHistory = async () => {
         try {
             const result = await databaseService.fetchHistory();
-            console.log('History Fetched Successfully');
             setHistory(result);
         } catch (error) {
             console.error('Failed to fetch history:', error);

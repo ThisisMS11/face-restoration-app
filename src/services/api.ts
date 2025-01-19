@@ -34,7 +34,7 @@ export const databaseService = {
                 body: JSON.stringify(inputData),
             });
 
-            console.log('Database save response:', data);
+            // console.log('Database save response:', data);
             return data;
         } catch (error) {
             console.error('Failed to save to database:', error);

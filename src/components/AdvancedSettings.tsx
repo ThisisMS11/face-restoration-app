@@ -16,13 +16,15 @@ import { TASKS_MAP, VIDEO_SETTINGS_MAP } from '@/constants';
 interface AdvancedSettingsProps {
     settings: VideoSettings;
     onUpdateSetting: (key: keyof VideoSettings, value: any) => void;
-    onMaskUpload: (url: string) => void;
+    onMaskUpload: (info: any) => void;
+    uploadMaskKey: number;
 }
 
 export default function AdvancedSettings({
     settings,
     onUpdateSetting,
     onMaskUpload,
+    uploadMaskKey,
 }: AdvancedSettingsProps) {
     return (
         <div className="space-y-4 w-full h-[45%] p-5 overflow-y-auto">
@@ -229,11 +231,10 @@ export default function AdvancedSettings({
                                 process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY ||
                                 ''
                             }
-                            onFileUploadSuccess={(info) => {
-                                onMaskUpload(info.cdnUrl);
-                            }}
+                            onFileUploadSuccess={onMaskUpload}
                             multiple={false}
                             accept="image/*"
+                            key={uploadMaskKey}
                         />
                     </div>
                 )}

@@ -32,6 +32,13 @@ export default function VideoGenerator() {
         string | null
     >(null);
 
+    const [uploadMaskKey, setUploadMaskKey] = useState(0);
+
+    const [videoResolution, setVideoResolution] = useState<{
+        width: number;
+        height: number;
+    } | null>(null);
+
     /* Custom Hooks */
     const { settings, setSettings, updateSetting } = useVideoSettings();
 
@@ -63,6 +70,27 @@ export default function VideoGenerator() {
             ...prev,
             video: undefined,
         }));
+    };
+
+    /* on mask upload */
+    const onMaskUpload = (info: any) => {
+        /* check if the resolution is the same as the original video */
+        if (videoResolution) {
+            const imageWidth = Number(info.fileInfo?.imageInfo?.width);
+            const imageHeight = Number(info.fileInfo?.imageInfo?.height);
+            if (
+                videoResolution.width !== imageWidth ||
+                videoResolution.height !== imageHeight
+            ) {
+                toast.error('Error', {
+                    description: `Mask resolution must be the same as the original video ${videoResolution.width}x${videoResolution.height}. Please upload another mask`,
+                    duration: 3000,
+                });
+                setUploadMaskKey((prev) => prev + 1);
+            } else {
+                setUploadCareCdnMaskUrl(info.cdnUrl);
+            }
+        }
     };
 
     /* Start processing video */
@@ -143,12 +171,12 @@ export default function VideoGenerator() {
         predictionId: string,
         ReplicateRetryCount: number = 0
     ) => {
-        console.log(
-            `Calling handlePredictionResults with predictionId: ${predictionId}`
-        );
+        // console.log(
+        //     `Calling handlePredictionResults with predictionId: ${predictionId}`
+        // );
         try {
             const predictionData = await pollPredictionStatus(predictionId);
-            console.log('Prediction Data:', predictionData);
+            // console.log('Prediction Data:', predictionData);
             if (!predictionData) {
                 throw new Error('Failed to get prediction data');
             }
@@ -221,6 +249,7 @@ export default function VideoGenerator() {
                                     uploadCareCdnUrl={uploadCareCdnUrl}
                                     onUploadSuccess={setUploadCareCdnUrl}
                                     onRemoveVideo={handleRemoveVideo}
+                                    setVideoResolution={setVideoResolution}
                                 />
 
                                 <Separator className="my-2" />
@@ -228,7 +257,8 @@ export default function VideoGenerator() {
                                 <AdvancedSettings
                                     settings={settings}
                                     onUpdateSetting={updateSetting}
-                                    onMaskUpload={setUploadCareCdnMaskUrl}
+                                    onMaskUpload={onMaskUpload}
+                                    uploadMaskKey={uploadMaskKey}
                                 />
 
                                 <Separator className="my-2" />

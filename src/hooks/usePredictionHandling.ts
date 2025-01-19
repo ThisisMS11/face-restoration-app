@@ -11,7 +11,7 @@ export const usePredictionHandling = () => {
     const pollPredictionStatus = async (id: string) => {
         try {
             const data = await predictionService.getStatus(id);
-            console.log(data);
+            // console.log(data);
             return data;
         } catch (error) {
             console.error('Polling error:', error);

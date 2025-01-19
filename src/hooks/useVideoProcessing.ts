@@ -37,7 +37,7 @@ export const useVideoProcessing = () => {
                 throw new Error('Invalid response: missing prediction ID');
             }
             setPredictionId(response.id);
-            console.log('Prediction ID:', response.id);
+            // console.log('Prediction ID:', response.id);
             return response.id;
         } catch (error) {
             const message =

@@ -8,12 +8,20 @@ interface VideoUploaderProps {
     uploadCareCdnUrl: string | null;
     onUploadSuccess: (url: string) => void;
     onRemoveVideo: () => void;
+    setVideoResolution: ({
+        width,
+        height,
+    }: {
+        width: number;
+        height: number;
+    }) => void;
 }
 
 export default function VideoUploader({
     uploadCareCdnUrl,
     onUploadSuccess,
     onRemoveVideo,
+    setVideoResolution,
 }: VideoUploaderProps) {
     return (
         <div className="space-y-1 h-[44%]">
@@ -27,9 +35,21 @@ export default function VideoUploader({
                                 process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY ||
                                 ''
                             }
-                            onFileUploadSuccess={(info) =>
-                                onUploadSuccess(info.cdnUrl)
-                            }
+                            onFileUploadSuccess={(info) => {
+                                onUploadSuccess(info.cdnUrl);
+                                setVideoResolution({
+                                    width:
+                                        Number(
+                                            info.fileInfo?.videoInfo?.video
+                                                .width
+                                        ) || 0,
+                                    height:
+                                        Number(
+                                            info.fileInfo?.videoInfo?.video
+                                                .height
+                                        ) || 0,
+                                });
+                            }}
                             multiple={false}
                             className="h-32 flex items-center justify-center"
                             accept="video/*"
