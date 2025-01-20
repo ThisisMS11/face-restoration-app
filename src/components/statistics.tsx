@@ -16,7 +16,7 @@ import { format } from 'date-fns';
 const Statistics = ({ data }: { data: PredictionResponse | null }) => {
     if (!data) {
         return (
-            <div className="px-2 h-[40%] space-y-3 ">
+            <div className="px-2 h-[40%] space-y-3 mt-4 lg:mt-0">
                 <div className="h-full">
                     <div className="flex items-center justify-between h-[15%] mb-4">
                         <div className="flex items-center gap-2">

@@ -14,7 +14,7 @@ export default function ActionButtons({
     onHistory,
 }: ActionButtonsProps) {
     return (
-        <div className="flex gap-3 h-[15%] px-2">
+        <div className="flex gap-3 h-fit px-2 flex-wrap">
             <Button
                 className="flex-1 rounded-lg"
                 onClick={onProcess}

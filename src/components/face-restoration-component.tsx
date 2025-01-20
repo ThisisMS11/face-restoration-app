@@ -229,7 +229,7 @@ export default function VideoGenerator() {
     };
 
     return (
-        <div className="flex flex-col h-full rounded-sm p-2 w-[80%] items-center overflow-hidden">
+        <div className="flex flex-col h-full rounded-sm p-2 lg:w-[80%] w-[90%] items-center">
             <div className="w-full h-full">
                 <Tabs defaultValue="text" className="mb-1 h-[4%] w-full">
                     <TabsList className="grid w-full grid-cols-1">
@@ -240,11 +240,11 @@ export default function VideoGenerator() {
                     </TabsList>
                 </Tabs>
 
-                <div className="flex w-full h-[93%] mt-4 gap-2">
+                <div className="flex w-full lg:h-[93%] mt-4 gap-2 flex-col lg:flex-row ">
                     {/* Left Side */}
-                    <div className="flex-1 p-1 border-r w-[35%] h-full">
+                    <div className="flex-1 p-1 border-r lg:w-[35%] h-full">
                         <Card className="h-full">
-                            <CardContent className="p-1 h-full">
+                            <CardContent className="p-1  h-full">
                                 <VideoUploader
                                     uploadCareCdnUrl={uploadCareCdnUrl}
                                     onUploadSuccess={setUploadCareCdnUrl}
@@ -273,7 +273,7 @@ export default function VideoGenerator() {
                     </div>
 
                     {/* Right Side */}
-                    <div className="flex flex-col w-[65%] h-full">
+                    <div className="flex flex-col lg:w-[65%] h-full lg:border-none lg:rounded-md mt-14 lg:mt-0 w-[95%]  mx-auto">
                         <RightSideProcess
                             status={status}
                             enhancedVideoUrl={enhancedVideoUrl}

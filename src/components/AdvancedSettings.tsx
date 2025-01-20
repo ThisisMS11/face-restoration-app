@@ -27,7 +27,7 @@ export default function AdvancedSettings({
     uploadMaskKey,
 }: AdvancedSettingsProps) {
     return (
-        <div className="space-y-4 w-full h-[45%] p-5 overflow-y-auto">
+        <div className="space-y-4 w-full h-[42%] p-5 overflow-y-auto">
             <h3 className="text-lg font-medium">Advanced Settings</h3>
 
             <div className="space-y-3">
